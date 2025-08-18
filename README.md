@@ -39,7 +39,8 @@ We will fetch team `schedule-and-record` data and `team-level batting/pitching` 
 ```
 .
 ├── data/
-│   └── raw/ #for storing later raew csvs                
+│   └── raw/ #for storing later raew csvs     
+├── figs/           #for saving figures from notebook
 ├── notebooks/
 │   └── milestone2_exploration.ipynb  
 ├── src/                    #later
@@ -70,12 +71,20 @@ TODO: get from notebook outputs (need to upscale)
 
 ## Data plots
 
-generate from notebook and put here
-- histograms of continuous features (e.g., OPS, ERA)
-- bar chart of home_win rate by team (sanity check for home-field advantage)
-- scatter: team OPS vs. win rate (league-wide)
-- rolling last-10 win % distribution.  
+### Histograms of continuous features (e.g., OPS, ERA)
+![Home OPS](figs/home_OPS_hist.png)
+![Away OPS](figs/away_OPS_hist.png)
+![Home ERA](figs/home_ERA_hist.png)
+![Away ERA](figs/away_ERA_hist.png)
 
+### Bar chart of home_win rate by team (sanity check for home-field advantage)
+![Home win rate by team](figs/bar_home_win_rate_by_team.png)
+
+### Scatter: team OPS vs. win rate (league-wide)
+![Home OPS (deciles) vs. win rate](figs/home_ops_deciles_vs_winrate.png)
+
+### Rolling last-10 win % distribution.  
+![Rolling last-10 win % distribution](figs/roll10_winpct_hist.png)
 
 ## Initial preprocessing plan (WIP)
 
