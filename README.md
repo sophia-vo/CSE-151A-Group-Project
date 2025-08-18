@@ -78,7 +78,7 @@ TODO: get from notebook outputs (need to upscale)
 ![Away ERA](figs/away_ERA_hist.png)
 
 ### Bar chart of home_win rate by team (sanity check for home-field advantage)
-![Home win rate by team](figs/bar_home_win_rate_by_team_hist.png)
+![Home win rate by team](figs/bar_home_win_rate_by_team.png)
 
 ### Scatter: team OPS vs. win rate (league-wide)
 ![Home OPS (deciles) vs. win rate](figs/home_ops_deciles_vs_winrate.png)
