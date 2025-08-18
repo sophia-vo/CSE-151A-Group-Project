@@ -39,7 +39,8 @@ We will fetch team `schedule-and-record` data and `team-level batting/pitching` 
 ```
 .
 ├── data/
-│   └── raw/ #for storing later raew csvs                
+│   └── raw/ #for storing later raew csvs     
+├── figs/           #for saving figures from notebook
 ├── notebooks/
 │   └── milestone2_exploration.ipynb  
 ├── src/                    #later
