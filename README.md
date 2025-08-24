@@ -257,7 +257,7 @@ Results from training four algorithms with systematic evaluation:
 |---|---:|---:|
 | Away(0) | 800 | 787 |
 | Home(1) | 588 | 1222 | -->
-![Validation Confusion Matrix](figs/confusion_matrix_validation.png)
+<img src="figs/confusion_matrix_validation.png" alt="Validation Confusion Matrix" width="50%"/>
 
 ---
 
@@ -275,9 +275,9 @@ Results from training four algorithms with systematic evaluation:
 |---|---:|---:|
 | Away(0) | 957 | 1111 |
 | Home(1) | 674 | 1506 |-->
-![Confusion Matrix](figs/confusion_matrix_test.png)
+<img src="figs/confusion_matrix_test.png" alt="Confusion Matrix" width="50%"/>
 
-
+---
 
 ### Hyperparameter Optimization Results
 
