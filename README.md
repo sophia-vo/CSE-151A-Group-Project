@@ -442,8 +442,7 @@ CSE-151A-Group-Project/
 ├── data/
 │   └── raw/
 │       └── games_2023.csv          # Raw MLB game data
-│       └── games_2016-2024_Milestone3.csv          # 2016-2024 MLB game data used for Milestone3
-│       └── games_2016-2024.csv          # Raw 2016-2024 MLB game data
+│       └── games_2016-2024_Milestone3.csv          # 2016-2024 MLB game data
 ├── figs/                           # Generated visualizations  
 ├── notebooks/
 │   ├── milestone2_exploration.ipynb # Data exploration & preprocessing
@@ -459,7 +458,7 @@ CSE-151A-Group-Project/
 - **[milestone3_modeling.ipynb](notebooks/milestone3_modeling.ipynb)** - Model training and optimization for MLB 2023 season
 - **[milestone3_modeling_2016-2024.ipynb](notebooks/milestone3_modeling.ipynb)** - Model training and optimization for MLB 2016-2024 seasons
 - **[games_2023.csv](data/raw/games_2023.csv)** - Raw MLB data for MLB 2023 season
-- **[games_2016-2024.csv](data/raw/games_2016-2024.csv)** - Raw MLB data for MLB 2016-2024 season
+- **[games_2016-2024.csv](data/raw/games_2016-2024_Milestone3.csv)** - Raw MLB data for MLB 2016-2024 season
 
 
 ## Next Phase Development
