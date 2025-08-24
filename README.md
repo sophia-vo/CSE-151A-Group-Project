@@ -253,10 +253,11 @@ Results from training four algorithms with systematic evaluation:
 | **weighted avg** | 0.59 | 0.60 | 0.59 | 3397 |
 
 **Validation Confusion Matrix**
-| Actual \\ Pred | Away(0) | Home(1) |
+<!--| Actual \\ Pred | Away(0) | Home(1) |
 |---|---:|---:|
 | Away(0) | 800 | 787 |
-| Home(1) | 588 | 1222 |
+| Home(1) | 588 | 1222 | -->
+![Validation Confusion Matrix](figs/confusion_matrix_validation.png)
 
 ---
 
@@ -270,10 +271,11 @@ Results from training four algorithms with systematic evaluation:
 | **weighted avg** | 0.58 | 0.58 | 0.57 | 4248 |
 
 **Test Confusion Matrix**
-| Actual \\ Pred | Away(0) | Home(1) |
+<!--| Actual \\ Pred | Away(0) | Home(1) |
 |---|---:|---:|
 | Away(0) | 957 | 1111 |
-| Home(1) | 674 | 1506 |
+| Home(1) | 674 | 1506 |-->
+![Confusion Matrix](figs/confusion_matrix_test.png)
 
 
 
