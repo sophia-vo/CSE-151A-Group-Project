@@ -85,6 +85,65 @@ TODO: get from notebook outputs (need to upscale)
 
 # Milestone 3
 
+## Summary
+
+---
+
+### 1. Preprocessing 
+We completed major preprocessing steps using a pipeline approach:
+- **Scaling/Transformation**: StandardScaler for numeric features, one-hot encoding for categorical features  
+- **Imputation**: Median for numeric features, mode for categorical features  
+- **Feature Expansion**: Polynomial expansion (degree 2) on high-signal stats (OPS, ERA, BA, WHIP)  
+- **Custom Feature Engineering**: Baseball-specific deltas, ratios, and rolling win% metrics  
+
+-> Result: Final feature space of 81 features (up from 29 raw) with no leakage.
+
+---
+
+### 2. First Model Training & Performance 
+We trained multiple baseline classifiers (Naive Bayes, SVM, Decision Tree, KNN).  
+
+- **Best model (Naive Bayes)**:  
+  - Train Accuracy: **58.8%**  
+  - Validation Accuracy: **59.5%**  
+  - Train–Val gap: **-0.7%** (excellent generalization)  
+- **Other models**:  
+  - SVM (62.3% train / 58.4% val) → mild overfitting  
+  - Decision Tree (60.5% / 58.1%) → balanced, slightly underfit  
+  - KNN (64.2% / 54.6%) → strong overfitting  
+
+-> Naive Bayes chosen as the baseline "first model" due to stability and generalization.
+
+---
+
+### 3. Bias–Variance / Fitting Analysis 
+
+Where our models sit in the fitting curve (see figure above):
+- **Naive Bayes**: Near the "sweet spot" → balanced, minimal gap.  
+- **KNN**: Overfitting region (low training error, high test error).  
+- **Decision Tree**: Slightly underfitting (higher bias).  
+
+Next planned models:
+- **Random Forest** → variance reduction via bagging.  
+- **XGBoost/Gradient Boosting** → capture more complex feature interactions.  
+- **Ensemble (NB + RF)** → combine generalization with variance reduction.  
+
+---
+
+### 4. Conclusion 
+
+**Conclusion of 1st Model (Naive Bayes):**
+- Achieved **59.5% validation accuracy**, ~7.7% above baseline 52%.  
+- Excellent generalization with no overfitting.  
+- Limited by feature scope (team-level stats only, no player/injury data).  
+
+**Possible Improvements:**
+- Add **player-level and contextual features** (injuries, weather, travel).  
+- Use **ensemble methods (RF, XGBoost)** to improve variance control.  
+- Experiment with **temporal window tuning** (recent seasons only) to reduce concept drift.  
+
+---
+
 ## 1. Data Preprocessing and Feature Engineering
 
 ### Dataset Overview
