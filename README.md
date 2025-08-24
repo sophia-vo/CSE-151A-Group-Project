@@ -118,6 +118,8 @@ We trained multiple baseline classifiers (Naive Bayes, SVM, Decision Tree, KNN).
 
 ### 3. Bias–Variance / Fitting Analysis 
 
+<img src="figs/fitting_graph.png" alt="Fitting Curve" width="30%"/>
+
 Where our models sit in the fitting curve (see figure above):
 - **Naive Bayes**: Near the "sweet spot" → balanced, minimal gap.  
 - **KNN**: Overfitting region (low training error, high test error).  
