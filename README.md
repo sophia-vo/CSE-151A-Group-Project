@@ -374,12 +374,14 @@ def fit_position(train_acc, val_acc, baseline=0.52, gap_thresh=0.08):
 | DecisionTree  | 0.605     | 0.581   | 0.025   | Near sweet-spot             |
 | KNN           | 0.642     | 0.546   | 0.096   | Overfitting (high variance) |
 
+<!--
 ### Learning Curve Analysis
 
 To further evaluate model fit, we plotted a learning curve for our best-performing model (SVM RBF).  
 This shows training and validation accuracy as the training set size increases.
 
 ![Learning Curve SVM](figs/learning_curve_svm.png)
+-->
 
 ### Hyperparameter Impact on Bias-Variance
 
