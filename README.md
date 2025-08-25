@@ -1,11 +1,157 @@
+# Table of Contents
+- [Milestone 2](#milestone-2)
+  - [Notebook: milestone2_exploration.ipynb](notebooks/milestone2_exploration.ipynb)
+- [Milestone 3](#milestone-3)
+  - [Notebook: milestone3_modeling.ipynb](notebooks/milestone3_modeling.ipynb)
+  - [Notebook: milestone3_modeling_2016-2024.ipynb](notebooks/milestone3_modeling_2016-2024.ipynb)
+
+---
+
+# Milestone 2
+
+**Goal:** Use the [pybaseball](https://pypi.org/project/pybaseball/) library to collect historical MLB data and explore it to prepare features for a decision tree classifier that predicts single-game outcomes (win/loss).
+
+We will train a simple, interpretable DecisionTreeClassifier on features like team batting/pitching strength (BA, OPS, ERA), and recent form (e.g., last-10 win %). In Milestone 2 we focus on data exploration and explainign the initial preprocessing plan.
+
+## Dataset
+
+We will build our dataset with `pybaseball`, scrapping from:
+- **PyPI: pybaseball**: https://pypi.org/project/pybaseball/  
+- **Upstream data sources accessed by pybaseball**:  
+  - Baseball-Reference (team game logs, schedules/records) — https://www.baseball-reference.com/  
+  - Baseball Savant / Statcast (pitch- and batted-ball–level) — https://baseballsavant.mlb.com/  
+  - FanGraphs (season/team batting & pitching leaderboards) — https://www.fangraphs.com/
+
+We will fetch team `schedule-and-record` data and `team-level batting/pitching` metrics to derive features (e.g., rolling last-10 win%, OPS, ERA) in order to predict the `home_win` (1 = home team won, 0 = lost).
+
+## Environment setup
+
+- **Python**: 3.9–3.12  
+- **Install** (virtualenv or conda):
+  ```bash
+  # if you are using venv
+  python -m venv .venv
+  source .venv/bin/activate  # Windows: .venv\Scripts\activate
+  pip install -r requirements.txt
+  ```
+  ```bash
+  # if you're using conda
+  conda create -n mlb python=3.11 -y
+  conda activate mlb
+  pip install -r requirements.txt
+  ```
+
+- **Requirements** located in `requirements.txt`. (check pybaseball endpoints in case of change)
+
+--- 
+# The Data
+
+## Observations
+
+THe scope of our data is the 2023 MLB regular season *(we're changing this to expand)*
+ - ~2.4k games per season (TODO)
+ - Each row represents one game -> remove duplicates only take home team perspc 
+ - target column to predict: `home_win` (1 if the home team won, else 0)
+
+
+Features:
+ Team:  battng stats eg BA, OBP, SLG, pitching stats etc -> have to compute these
+ Recent form: rolling last-10 (or 7/15) game win %, recent runs scored/allowed per game etc etc
+ other: day/night, doubleheader flag, interleague, etc
+
+
+TODO: get from notebook outputs (need to upscale)
+
+---
+
+## Data plots
+
+### Histograms of continuous features (e.g., OPS, ERA)
+![Home OPS](figs/home_OPS_hist.png)
+![Away OPS](figs/away_OPS_hist.png)
+![Home ERA](figs/home_ERA_hist.png)
+![Away ERA](figs/away_ERA_hist.png)
+
+### Bar chart of home_win rate by team (sanity check for home-field advantage)
+![Home win rate by team](figs/bar_home_win_rate_by_team.png)
+
+### Scatter: team OPS vs. win rate (league-wide)
+![Home OPS (deciles) vs. win rate](figs/home_ops_deciles_vs_winrate.png)
+
+### Rolling last-10 win % distribution.  
+![Rolling last-10 win % distribution](figs/roll10_winpct_hist.png)
+
+---
+
 # Milestone 3
+
+## Summary
+
+---
+
+### 1. Preprocessing 
+We completed major preprocessing steps using a pipeline approach:
+- **Scaling/Transformation**: StandardScaler for numeric features, one-hot encoding for categorical features  
+- **Imputation**: Median for numeric features, mode for categorical features  
+- **Feature Expansion**: Polynomial expansion (degree 2) on high-signal stats (OPS, ERA, BA, WHIP)  
+- **Custom Feature Engineering**: Baseball-specific deltas, ratios, and rolling win% metrics  
+
+-> Result: Final feature space of 81 features (up from 29 raw) with no leakage.
+
+---
+
+### 2. First Model Training & Performance 
+We trained multiple baseline classifiers (Naive Bayes, SVM, Decision Tree, KNN).  
+
+- **Best model (Naive Bayes)**:  
+  - Train Accuracy: **58.8%**  
+  - Validation Accuracy: **59.5%**  
+  - Train–Val gap: **-0.7%** (excellent generalization)  
+- **Other models**:  
+  - SVM (62.3% train / 58.4% val) → mild overfitting  
+  - Decision Tree (60.5% / 58.1%) → balanced, slightly underfit  
+  - KNN (64.2% / 54.6%) → strong overfitting  
+
+-> Naive Bayes chosen as the baseline "first model" due to stability and generalization.
+
+---
+
+### 3. Bias–Variance / Fitting Analysis 
+
+<img src="figs/fitting_graph.png" alt="Fitting Curve" width="30%"/>
+
+Where our models sit in the fitting curve (see figure above):
+- **Naive Bayes**: Near the "sweet spot" → balanced, minimal gap.  
+- **KNN**: Overfitting region (low training error, high test error).  
+- **Decision Tree**: Slightly underfitting (higher bias).  
+
+Next planned models:
+- **Random Forest** → variance reduction via bagging.  
+- **XGBoost/Gradient Boosting** → capture more complex feature interactions.  
+- **Ensemble (NB + RF)** → combine generalization with variance reduction.  
+
+---
+
+### 4. Conclusion 
+
+**Conclusion of 1st Model (Naive Bayes):**
+- Achieved **59.5% validation accuracy**, ~7.7% above baseline 52%.  
+- Excellent generalization with no overfitting.  
+- Limited by feature scope (team-level stats only, no player/injury data).  
+
+**Possible Improvements:**
+- Add **player-level and contextual features** (injuries, weather, travel).  
+- Use **ensemble methods (RF, XGBoost)** to improve variance control.  
+- Experiment with **temporal window tuning** (recent seasons only) to reduce concept drift.  
+
+---
 
 ## 1. Data Preprocessing and Feature Engineering
 
 ### Dataset Overview
-- **Source**: MLB 2023 season games via pybaseball API
-- **Initial Data**: 2,430 games with 29 features
-- **Final Dataset**: 2,430 games with 81 engineered features
+- **Source**: MLB 2016-2024 season games (excluding 2020) via pybaseball API
+- **Initial Data**: 19,436 games with 29 features
+- **Final Dataset**: 19,436 games with 81 engineered features
 - **Target**: Binary classification (home team win/loss)
 
 ### Preprocessing Pipeline Implementation
@@ -40,7 +186,7 @@ df['home_last10_win_pct'] = (
 
 **Data Splitting**: Temporal split (64% train / 16% validation / 20% test) to prevent future data leakage.
 
-**Final Feature Space**: 1,689 training samples × 81 features with balanced classes (52% home wins).
+**Final Feature Space**: 13,591 training samples × 81 features with balanced classes (53% home wins).
 
 ---
 
@@ -85,56 +231,121 @@ Results from training four algorithms with systematic evaluation:
 
 | Model | Training Accuracy | Validation Accuracy | Training-Val Gap |
 |-------|------------------|-------------------|------------------|
-| **SVM_RBF** | **67.3%** | **60.3%** | **7.0%** |
-| Decision Tree | 60.8% | 59.6% | 1.2% |
-| Naive Bayes | 59.1% | 59.8% | -0.7% |
-| KNN | 64.7% | 56.7% | 8.0% |
+| **Naive Bayes** | **58.8%** | **59.5%** | **-0.7%** |
+| SVM RBF | 62.3% | 58.4% | 3.9% |
+| Decision Tree | 60.5% | 58.1% | 2.4% |
+| KNN | 64.2% | 54.6% | 9.6% |
+
+
+### Test Metrics
+| Metric | Value |
+|---|---|
+| Balanced Accuracy | 0.5768 |
+| Macro F1 | 0.5727 |
+
+---
+
+### Validation Classification Report
+| Class | Precision | Recall | F1-score | Support |
+|---|---:|---:|---:|---:|
+| Away(0) | 0.58 | 0.50 | 0.54 | 1587 |
+| Home(1) | 0.61 | 0.68 | 0.64 | 1810 |
+| **accuracy** |  |  | 0.60 | 3397 |
+| **macro avg** | 0.59 | 0.59 | 0.59 | 3397 |
+| **weighted avg** | 0.59 | 0.60 | 0.59 | 3397 |
+
+**Validation Confusion Matrix**
+<!--| Actual \\ Pred | Away(0) | Home(1) |
+|---|---:|---:|
+| Away(0) | 800 | 787 |
+| Home(1) | 588 | 1222 | -->
+<img src="figs/confusion_matrix_validation.png" alt="Validation Confusion Matrix" width="50%"/>
+
+---
+
+### Test Classification Report
+| Class | Precision | Recall | F1-score | Support |
+|---|---:|---:|---:|---:|
+| Away(0) | 0.59 | 0.46 | 0.52 | 2068 |
+| Home(1) | 0.58 | 0.69 | 0.63 | 2180 |
+| **accuracy** |  |  | 0.58 | 4248 |
+| **macro avg** | 0.58 | 0.58 | 0.57 | 4248 |
+| **weighted avg** | 0.58 | 0.58 | 0.57 | 4248 |
+
+**Test Confusion Matrix**
+<!--| Actual \\ Pred | Away(0) | Home(1) |
+|---|---:|---:|
+| Away(0) | 957 | 1111 |
+| Home(1) | 674 | 1506 |-->
+<img src="figs/confusion_matrix_test.png" alt="Confusion Matrix" width="50%"/>
+
+---
 
 ### Hyperparameter Optimization Results
 
-**SVM Grid Search** (Top 5 configurations):
+**Naive Bayes Grid Search** (Top 5 configurations):
 
-| C | gamma | Training Acc | Validation Acc | Gap |
+<!-- | C | gamma | Training Acc | Validation Acc | Gap |
 |---|-------|-------------|---------------|-----|
-| **1.0** | **scale** | **63.0%** | **61.2%** | **1.8%** |
-| 2.0 | scale | 67.3% | 60.3% | 7.0% |
-| 0.5 | 0.05 | 71.5% | 60.0% | 11.5% |
-| 0.5 | scale | 61.6% | 59.3% | 2.3% |
-| 1.0 | 0.05 | 77.5% | 58.9% | 18.6% |
+| **1.0** | **scale** | **60.8%** | **58.5%** | **2.3%** |
+| 2.0 | scale | 62.3% | 58.4% | 3.9% |
+| 0.5 | scale | 60.0% | 58.4% | 1.6% |
+| 0.5 | 0.05 | 65.7% | 58.3% | 7.4% |
+| 1.0 | 0.05 | 70.7% | 57.5% | 13.2% | -->
+
+| var\_smoothing | Training Acc | Validation Acc | Gap   |
+| -------------- | ------------ | -------------- | ----- |
+| 1.000000e-12   | 58.8%        | 59.5%          | -0.7% |
+| 3.162278e-12   | 58.8%        | 59.5%          | -0.7% |
+| 1.000000e-11   | 58.8%        | 59.5%          | -0.7% |
+| 3.162278e-11   | 58.8%        | 59.5%          | -0.7% |
+| 1.000000e-10   | 58.8%        | 59.5%          | -0.7% |
+
+
 
 ```python
 # Hyperparameter optimization implementation
-svm_grid = {"C": [0.5, 1.0, 2.0], "gamma": ['scale', 0.1, 0.05]}
-best_svm = evaluate_grid(SVC, svm_grid, X_tr, y_tr, X_va, y_va)
-# Result: C=1.0, gamma='scale' achieved optimal generalization
+nb_grid = {"var_smoothing": np.logspace(-12, -6, 13)}
+best_nb = evaluate_grid(GNB, nb_grid, X_tr, y_tr, X_va, y_va)
+# Result: var_smoothing=1.000000e-12 achieved optimal generalization
 ```
 
 **Decision Tree Grid Search** (Top 4 configurations):
 
 | max_depth | min_samples_leaf | Training Acc | Validation Acc |
 |-----------|------------------|-------------|---------------|
-| 4 | 1 | 59.7% | **59.8%** |
-| 5 | 3 | 59.5% | **59.8%** |
-| 6 | 5 | 59.4% | 59.6% |
-| 10 | 5 | 60.8% | 59.6% |
+| 4 | 1 | 59.64% | **58.4%** |
+| 4 | 3 | 59.64% | **58.4%** |
+| 4 | 5 | 59.64% | **58.4**% |
+| 4 | 10 | 59.59% | 58.3% |
 
 ### Training vs. Validation Performance Analysis
 
 **Key Performance Improvement**:
-- **Original SVM**: 67.3% train → 60.3% val (7.0% gap)
-- **Optimized SVM**: 63.0% train → 61.2% val (1.8% gap)
-- **Improvement**: 73% reduction in overfitting + 0.9% validation accuracy gain
+- **Original NB**: 58.8% train → 59.5% val (-0.7% gap)
+- **Optimized NB**: 58.8% train → 59.5% val (-0.7% gap)
+- **No Improvement**: 0% reduction in overfitting + 0% validation accuracy gain
 
 **Sample Model Predictions**:
 
-| Dataset | Actual | Predicted | Probability | Result |
-|---------|--------|-----------|-------------|--------|
-| Train | Home Win | Home Win | 60.9% | ✓ Correct |
-| Train | Home Win | Away Win | 46.5% | ✗ Incorrect |
-| Validation | Home Win | Home Win | 58.9% | ✓ Correct |
-| Validation | Away Win | Home Win | 54.7% | ✗ Incorrect |
-| Test | Home Win | Home Win | 62.7% | ✓ Correct |
-| Test | Away Win | Away Win | 40.3% | ✓ Correct |
+| Dataset    | Actual   | Predicted | Probability | Result      |
+| ---------- | -------- | --------- | ----------- | ----------- |
+| Train      | Home Win | Away Win  | 28.7%       | ✗ Incorrect |
+| Train      | Home Win | Away Win  | 25.1%       | ✗ Incorrect |
+| Train      | Away Win | Home Win  | 97.6%       | ✗ Incorrect |
+| Train      | Home Win | Home Win  | 100.0%      | ✓ Correct   |
+| Train      | Home Win | Away Win  | 0.6%        | ✗ Incorrect |
+| Validation | Away Win | Home Win  | 100.0%      | ✗ Incorrect |
+| Validation | Home Win | Home Win  | 100.0%      | ✓ Correct   |
+| Validation | Home Win | Away Win  | 0.0%        | ✗ Incorrect |
+| Validation | Home Win | Home Win  | 100.0%      | ✓ Correct   |
+| Validation | Away Win | Home Win  | 97.7%       | ✗ Incorrect |
+| Test       | Home Win | Home Win  | 99.6%       | ✓ Correct   |
+| Test       | Away Win | Home Win  | 57.6%       | ✗ Incorrect |
+| Test       | Away Win | Home Win  | 100.0%      | ✗ Incorrect |
+| Test       | Away Win | Home Win  | 99.9%       | ✗ Incorrect |
+| Test       | Away Win | Home Win  | 100.0%      | ✗ Incorrect |
+
 
 ---
 
@@ -154,21 +365,21 @@ def fit_position(train_acc, val_acc, baseline=0.52, gap_thresh=0.08):
 
 ### Comprehensive Model Analysis
 
-| Model | Train Acc | Val Acc | Gap | Diagnosis |
-|-------|-----------|---------|-----|----------|
-| **SVM_RBF** | **0.673** | **0.603** | **0.070** | **Near sweet-spot** |
-| Decision Tree | 0.608 | 0.596 | 0.012 | Near sweet-spot |
-| Naive Bayes | 0.591 | 0.598 | -0.007 | Near sweet-spot  |
-| KNN | 0.647 | 0.567 | 0.080 | Near sweet-spot  |
+| Model         | Train Acc | Val Acc | Gap     | Diagnosis                   |
+|---------------|-----------|---------|---------|-----------------------------|
+| **NaiveBayes**| **0.588** | **0.595** | **-0.007** | **Near sweet-spot**         |
+| SVM_RBF       | 0.623     | 0.584   | 0.039   | Near sweet-spot             |
+| DecisionTree  | 0.605     | 0.581   | 0.025   | Near sweet-spot             |
+| KNN           | 0.642     | 0.546   | 0.096   | Overfitting (high variance) |
+
 
 ### Hyperparameter Impact on Bias-Variance
 
-**SVM Optimization Journey**:
-- **Initial**: C=2.0 → 7.0% gap (moderate overfitting)
-- **Optimized**: C=1.0 → 1.8% gap (near optimal complexity)
-- **Over-regularized**: C=0.5 → potential underfitting
+**Naive Bayes Optimization Journey**:
+- **Initial**: var_smoothing=1e-9 → -0.007% gap (near optimal complexity)
+- **Optimized**: var_smoothing=1e-12 → -0.007% gap (near optimal complexity)
 
-The optimization successfully moved our model from moderate overfitting to the optimal complexity region while improving validation performance.
+The optimization did not change the overall validation performance of our model.
 
 ### Next Model Recommendations
 
@@ -189,7 +400,7 @@ The optimization successfully moved our model from moderate overfitting to the o
    - **Method**: Weighted voting or stacking approach
    - **Expected**: Best of both algorithms while reducing individual model weaknesses
 
-**Why These Specific Models**: Since our current SVM sits in the optimal complexity region, improvements should focus on ensemble methods that reduce variance and capture feature interactions, rather than single models requiring extensive hyperparameter tuning.
+**Why These Specific Models**: Since our current NB sits in the optimal complexity region, improvements should focus on ensemble methods that reduce variance and capture feature interactions, rather than single models requiring extensive hyperparameter tuning.
 
 ---
 
@@ -197,17 +408,17 @@ The optimization successfully moved our model from moderate overfitting to the o
 
 ### Model Performance Summary
 
-Our hyperparameter-optimized SVM achieved **61.2% validation accuracy** with excellent generalization (1.8% training-validation gap). This represents a 9.2 percentage point improvement over the 52% baseline while demonstrating proper model complexity control.
+Our hyperparameter-optimized NB achieved **59.5% validation accuracy** with excellent generalization (-0.007% training-validation gap). This represents a 7.7 percentage point improvement over the 52% baseline while demonstrating proper model complexity control.
 
 **Key Achievements**:
-- **73% reduction in overfitting** through systematic hyperparameter optimization
+<!-- - **73% reduction in overfitting** through systematic hyperparameter optimization -->
 - **Feature engineering success**: 29 → 81 meaningful features capturing baseball dynamics
 - **Leakage-free methodology**: Temporal splitting and careful preprocessing maintained prediction integrity
 - **Calibrated predictions**: Probability outputs (40-63%) reflect appropriate confidence levels
 
 ### Model Limitations
 
-**Performance Constraints**: 61.2% accuracy reflects baseball's inherent unpredictability where many games are genuinely close contests influenced by factors beyond team statistics.
+**Performance Constraints**: 59.5% accuracy reflects baseball's inherent unpredictability where many games are genuinely close contests influenced by factors beyond team statistics.
 
 **Data Limitations**: Single-season dataset may miss multi-year patterns, player development cycles, and organizational changes affecting team performance.
 
@@ -215,9 +426,9 @@ Our hyperparameter-optimized SVM achieved **61.2% validation accuracy** with exc
 
 ### Improvement Strategies
 
-Target: 63-65% accuracy**:
+Target: 60-65% accuracy**:
 - **Ensemble Methods**: Random Forest implementation for variance reduction
-- **Dataset Expansion**: Include 2021-2023 seasons for broader pattern recognition
+- **Dataset Reduction**: Limit training to the most recent `N` seasons to reduce concept drift and align with current-era distributions, improving out-of-sample accuracy.
 - **Advanced Features**: Player-level statistics, weather conditions, rest days, travel distance
 
 ---
@@ -231,24 +442,29 @@ CSE-151A-Group-Project/
 ├── data/
 │   └── raw/
 │       └── games_2023.csv          # Raw MLB game data
+│       └── games_2016-2024_Milestone3.csv          # 2016-2024 MLB game data
 ├── figs/                           # Generated visualizations  
 ├── notebooks/
 │   ├── milestone2_exploration.ipynb # Data exploration & preprocessing
-│   └── milestone3_modeling.ipynb   # Model training & evaluation
+│   └── milestone3_modeling.ipynb   # Model training & evaluation for 2023
+│   └── milestone3_modeling_2016-2024.ipynb   # Model training & evaluation for 2016-2024
 ├── .gitignore
 ├── README.md                       # Project documentation
 └── requirements.txt               # Python dependencies
 ```
 
 ## Project Files
-- **[milestone2_exploration.ipynb](notebooks/milestone2_exploration.ipynb)** - Data preprocessing and feature engineering
-- **[milestone3_modeling.ipynb](notebooks/milestone3_modeling.ipynb)** - Model training and optimization
-- **[games_2023.csv](data/raw/games_2023.csv)** - Raw MLB data
+- **[milestone2_exploration.ipynb](notebooks/milestone2_exploration.ipynb)** - Data preprocessing and feature engineering (2016-2023)
+- **[milestone3_modeling.ipynb](notebooks/milestone3_modeling.ipynb)** - Model training and optimization for MLB 2023 season
+- **[milestone3_modeling_2016-2024.ipynb](notebooks/milestone3_modeling.ipynb)** - Model training and optimization for MLB 2016-2024 seasons
+- **[games_2023.csv](data/raw/games_2023.csv)** - Raw MLB data for MLB 2023 season
+- **[games_2016-2024.csv](data/raw/games_2016-2024_Milestone3.csv)** - Raw MLB data for MLB 2016-2024 season
+
 
 ## Next Phase Development
 - Random Forest ensemble implementation
 - Multi-season dataset expansion
 - Advanced feature engineering (player stats, weather)
-- Target: 63-65% validation accuracy
+- Target: 60-65% validation accuracy
 
 
