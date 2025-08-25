@@ -1,4 +1,6 @@
-# Table of Contents
+# MLB Game Outcome Prediction
+
+## Table of Contents
 - [Milestone 2](#milestone-2)
   - [Notebook: milestone2_exploration.ipynb](notebooks/milestone2_exploration.ipynb)
 - [Milestone 3](#milestone-3)
