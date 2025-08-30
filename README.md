@@ -4,6 +4,7 @@
 - [Milestone 3](#milestone-3)
   - [Notebook: milestone3_modeling.ipynb](notebooks/milestone3_modeling.ipynb)
   - [Notebook: milestone3_modeling_2016-2024.ipynb](notebooks/milestone3_modeling_2016-2024.ipynb)
+- [Milestone 4](#milestone-4)
 
 ---
 
@@ -437,9 +438,19 @@ Target: 60-65% accuracy**:
 - **Dataset Reduction**: Limit training to the most recent `N` seasons to reduce concept drift and align with current-era distributions, improving out-of-sample accuracy.
 - **Advanced Features**: Player-level statistics, weather conditions, rest days, travel distance
 
+## Next Phase Development
+- Random Forest ensemble implementation
+- Multi-season dataset expansion
+- Advanced feature engineering (player stats, weather)
+- Target: 60-65% validation accuracy
+  
 ---
 
-## 5. Repository Structure and Documentation
+# Milestone 4
+
+---
+
+## Repository Structure and Documentation
 
 ### Current Project Organization
 ```
@@ -465,12 +476,4 @@ CSE-151A-Group-Project/
 - **[milestone3_modeling_2016-2024.ipynb](notebooks/milestone3_modeling.ipynb)** - Model training and optimization for MLB 2016-2024 seasons
 - **[games_2023.csv](data/raw/games_2023.csv)** - Raw MLB data for MLB 2023 season
 - **[games_2016-2024.csv](data/raw/games_2016-2024_Milestone3.csv)** - Raw MLB data for MLB 2016-2024 season
-
-
-## Next Phase Development
-- Random Forest ensemble implementation
-- Multi-season dataset expansion
-- Advanced feature engineering (player stats, weather)
-- Target: 60-65% validation accuracy
-
 
