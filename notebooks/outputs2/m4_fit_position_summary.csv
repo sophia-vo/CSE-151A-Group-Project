@@ -1,0 +1,7 @@
+model,params,train_silhouette,test_silhouette,interpretation
+NMF+KMeans,"{""n_components"": 2, ""k"": 3}",0.8784597153188543,0.8790501826507856,Encouraging: test >= train silhouette.
+PCA+GMM,"{""n_components"": 5, ""k"": 2, ""covariance_type"": ""full""}",0.49679804124228766,0.49284705404901674,Stable: train and test silhouettes are similar.
+PCA+Agglo,"{""n_components"": 5, ""k"": 2, ""linkage"": ""average""}",0.49679804124228766,0.49284705404901674,Stable: train and test silhouettes are similar.
+SVD+GMM,"{""n_components"": 5, ""k"": 2, ""covariance_type"": ""full""}",0.4962334474306695,0.49224133575479173,Stable: train and test silhouettes are similar.
+SVD+KMeans,"{""n_components"": 2, ""k"": 2}",0.3431113021844098,0.3366182740296475,Stable: train and test silhouettes are similar.
+PCA+KMeans,"{""n_components"": 2, ""k"": 2}",0.3431096705410535,0.33661696076319053,Stable: train and test silhouettes are similar.
