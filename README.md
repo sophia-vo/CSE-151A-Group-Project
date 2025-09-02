@@ -1,3 +1,22 @@
+# Introduction
+
+**Goal.** Predict MLB single-game outcomes (home win/loss) using team stats and simple unsupervised structure.
+
+**Data.** MLB games 2016–2024 (excl. 2020) via `pybaseball`; target = `home_win`. Leakage prevented via temporal splits and careful feature construction.
+
+**Methods.** 
+- **Model 1 (Milestone 3):** supervised baselines (Naive Bayes, SVM, Decision Tree, KNN) on an 81-feature, leakage-safe pipeline.
+- **Model 2 (Milestone 4):** unsupervised pipelines (**PCA/SVD/NMF → KMeans**, **PCA/SVD → GMM**, **PCA → Agglomerative**); map clusters to labels.
+
+**Key results.**
+- **Model 1 (Naive Bayes):** Val **59.5%**, test **balanced acc 0.5768**, **macro-F1 0.5727**, ~**+7.7 pts** over 52% baseline; near sweet-spot.
+- **Model 2 (final pick: SVD+KMeans, k=2):** Test **acc 0.5756**, **F1 0.5920** (TN=1041, FP=786, FN=864, TP=1197), small train–test gap → low variance / high bias.
+- **Insight.** Cleanest clusters (**NMF+KMeans**, silhouette ~0.879) weren’t predictive; **SVD/PCA+KMeans** gave modest predictive lift.
+
+**Takeaway.** Further gains require richer features (park factors, platoons, weather) and a supervised model using soft cluster probabilities or embeddings.
+
+---
+
 # Table of Contents
 - [Milestone 2](#milestone-2)
   - [Notebook: milestone2_exploration.ipynb](notebooks/milestone2_exploration.ipynb)
