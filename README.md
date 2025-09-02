@@ -492,14 +492,14 @@ The primary metric used is the Silhouette Score, which measures how similar an o
 The m4_model_comparison.csv file summarizes the best-performing configuration for each pipeline based on test set silhouette score.
 
 
-| model        | test_silhouette | interpretation                                  |
-| ------------ | --------------- | ----------------------------------------------- |
-| **NMF+KMeans** | **0.879**       | **Encouraging: test >= train silhouette.**      |
-| PCA+GMM      | 0.493           | Stable: train and test silhouettes are similar. |
-| PCA+Agglo    | 0.493           | Stable: train and test silhouettes are similar. |
-| SVD+GMM      | 0.492           | Stable: train and test silhouettes are similar. |
-| SVD+KMeans   | 0.337           | Stable: train and test silhouettes are similar. |
-| PCA+KMeans   | 0.337           | Stable: train and test silhouettes are similar. |
+| model        | params                                              | train_silhouette | test_silhouette | interpretation                                  |
+| ------------ | --------------------------------------------------- | ---------------- | --------------- | ----------------------------------------------- |
+| **NMF+KMeans** | **{"n_components": 2, "k": 3}**                     | **0.878**        | **0.879**       | **Encouraging: test >= train silhouette.**      |
+| PCA+GMM      | {"n_components": 5, "k": 2, "covariance_type": "full"} | 0.497            | 0.493           | Stable: train and test silhouettes are similar. |
+| PCA+Agglo    | {"n_components": 5, "k": 2, "linkage": "average"}     | 0.497            | 0.493           | Stable: train and test silhouettes are similar. |
+| SVD+GMM      | {"n_components": 5, "k": 2, "covariance_type": "full"} | 0.496            | 0.492           | Stable: train and test silhouettes are similar. |
+| SVD+KMeans   | {"n_components": 2, "k": 2}                           | 0.343            | 0.337           | Stable: train and test silhouettes are similar. |
+| PCA+KMeans   | {"n_components": 2, "k": 2}                           | 0.343            | 0.337           | Stable: train and test silhouettes are similar. |
 
 
 #### Quantitative Findings:
