@@ -449,8 +449,62 @@ Target: 60-65% accuracy**:
 
 # Milestone 4
 
-## Unsupervised Clustering Models for MLB Game Data
+## Summary
 
+* **Best model (“second model”): `SVD + KMeans (k=2)` with majority-per-cluster labeling.**
+* **Test set (n = 3,888):** Accuracy **0.5756**, Precision **0.6036**, Recall **0.5808**, F1 **0.5920**.
+  Confusion matrix `[[TN, FP], [FN, TP]]` = **`[[1041, 786], [864, 1197]]`**.
+* **Train vs. Test:** Train accuracy ≈ **0.587** vs. Test **0.576** → **small generalization gap** (low variance) but **bias-limited**.
+* **Position on the fitting graph:** **Underfit / high-bias** region.
+* **Next steps:** Move to **direct supervised models** (LogReg, Gradient Boosting), add **richer features**, and replace the **hard cluster majority** mapping with supervised mapping or soft-probability features.
+
+### Test-set outcomes (best model)
+
+* **TP:** 1,197
+* **TN:** 1,041
+* **FP:** 786
+* **FN:** 864
+* **Correct predictions:** 2,238
+* **Incorrect predictions:** 1,650
+* **Accuracy:** 0.5756
+* **Precision:** 0.6036
+* **Recall:** 0.5808
+* **F1:** 0.5920
+* **FPR:** 786 / (786 + 1041) ≈ **0.430**
+* **FNR:** 864 / (864 + 1197) ≈ **0.419**
+
+> Baseline (“always predict positive”): Accuracy **0.5301** (2061 / 3888).
+> **Gain vs. baseline:** \~**+4.5 pts** absolute accuracy.
+
+### Train vs. Test
+
+Cluster stats for the SVD+KMeans run:
+
+* **Cluster 0:** size 7,465; positives 3,290 (pos\_rate 0.4407) → predict **class 0**
+* **Cluster 1:** size 8,083; positives 4,952 (pos\_rate 0.6126) → predict **class 1**
+
+**Train accuracy ≈** $(7,465 − 3,290) + 4,952$ / 15,548 = **9,127 / 15,548 ≈ 0.587**
+Silhouette (train vs. test) for the 2-D embedding was very close (≈ **0.343** vs **0.337**), reinforcing **low variance** and **no evident overfit**.
+
+### Fitting-graph position
+
+* **Small train–test gap** and **both accuracies in the high-50s** → the model is bias-limited, left side of graph.
+* The pipeline (2-D SVD + k=2 clustering + hard majority label) is too simple to capture richer structure.
+
+### Next models/Improvements
+* Try Spectral Clustering on the best embedding (PCA/SVD) for non-convex clusters.
+* For GMM, compare AIC/BIC across k and covariance types; consider Dirichlet Process GMM for adaptive k.
+* For Agglomerative, inspect a dendrogram offline to choose k and linkage.
+* Engineer richer features (rolling form, park factors, platoon splits) to reveal stronger structure.
+
+### Conclusion for the (best) model
+
+* `SVD + KMeans` is **stable and better than the naïve baseline**, but **plateaus at \~58%** accuracy.
+* The bottleneck is the coarse decision rule, not SVD vs. PCA.
+
+---
+
+## Unsupervised Clustering Models for MLB Game Data
 
 ## 1. Summary
 
