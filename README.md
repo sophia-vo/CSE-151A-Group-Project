@@ -448,6 +448,116 @@ Target: 60-65% accuracy**:
 
 # Milestone 4
 
+## Unsupervised Clustering Models for MLB Game Data
+
+
+## 1. Summary
+
+In this analysis we explored six different unsupervised learning pipelines to cluster Major League Baseball game data.
+The goal was to identify meaningful groupings of games and evaluate their quality. The models were assessed using two approaches:
+
+ 1. Internal Cluster Quality: Measured by how well-separated and dense the clusters are (using Silhouette, Calinski-Harabasz, and Davies-Bouldin scores).
+ 2. External Predictive Power: Measured by how well the discovered clusters could be used to predict the home_win outcome.
+
+The key finding is a trade-off between these two objectives. The NMF+KMeans model produced the most structurally sound and well-defined clusters by a large margin. However, these clusters had no predictive power for game outcomes. The PCA+KMeans and SVD+KMeans models produced clusters with modest (though still weak) predictive power, but these clusters were of much lower quality from a structural standpoint.
+
+Conclusion: While NMF+KMeans is the best model for identifying distinct, data-driven segments, PCA+KMeans is slightly more useful for the practical task of outcome prediction. The overall low predictive accuracy suggests that improved feature engineering is required to create clusters that are meaningful for predicting game winners.
+
+---
+
+## 2. Methods
+
+We implemented and tested the following unsupervised pipelines:
+ * Dimensionality Reduction: PCA, TruncatedSVD, and NMF
+ * Clustering: KMeans, Gaussian Mixture Model (GMM), and Agglomerative Clustering
+
+These were combined into six primary pipelines for hyperparameter searching:
+ 1. PCA + KMeans
+ 2. SVD + KMeans
+ 3. NMF + KMeans
+ 4. PCA + GMM
+ 5. SVD + GMM
+ 6. PCA + Agglomerative Clustering
+
+The models were evaluated on a training set and a held-out test set.
+
+---
+
+### 2.1. Analysis of Cluster Quality (Internal Metrics)
+
+"Which model found the most mathematically optimal clusters?"
+
+The primary metric used is the Silhouette Score, which measures how similar an object is to its own cluster compared to other clusters. Scores range from -1 to 1, where a high value indicates that the object is well-matched to its own cluster and poorly-matched to neighboring clusters.
+
+The m4_model_comparison.csv file summarizes the best-performing configuration for each pipeline based on test set silhouette score.
+
+┌────────────┬─────────────────┬─────────────────────────────────────────────────┐
+│ model      │ test_silhouette │ interpretation                                  │
+├────────────┼─────────────────┼─────────────────────────────────────────────────┤
+│ NMF+KMeans │ 0.879           │ Encouraging: test >= train silhouette.          │
+│ PCA+GMM    │ 0.493           │ Stable: train and test silhouettes are similar. │
+│ PCA+Agglo  │ 0.493           │ Stable: train and test silhouettes are similar. │
+│ SVD+GMM    │ 0.492           │ Stable: train and test silhouettes are similar. │
+│ SVD+KMeans │ 0.337           │ Stable: train and test silhouettes are similar. │
+│ PCA+KMeans │ 0.337           │ Stable: train and test silhouettes are similar. │
+└────────────┴─────────────────┴─────────────────────────────────────────────────┘
+
+#### Quantitative Findings:
+ * NMF+KMeans is the overall 'best' model. Its best model achieved a silhouette score of 0.879, which is relatively high and indicates very dense, well-separated clusters.
+ * The other models lag significantly, with the next best (PCA+GMM/Agglo) only achieving a score of ~0.493.
+ * The PCA/SVD+KMeans models, which are often a strong baseline, performed the worst on this metric with a
+   score of ~0.337.
+
+#### Qualitative Findings:
+The m4_fit_position_summary.csv shows that the NMF+KMeans model was not only the best but also the most robust, with the test silhouette score being slightly higher than the train score, suggesting it generalizes very well. All other models were stable but did not show this trend.
+
+Conclusion for Cluster Quality: Based on internal metrics, the NMF+KMeans pipeline with 2 components and 3 clusters is the best model for partitioning the data into distinct groups.
+
+---
+
+### 2.2 Analysis of Predictive Power (Supervised "Proxy" Metrics)
+
+"Are the clusters found by the models useful in a practical sense?" 
+
+To test this, the clusters were used to predict whether the home team would win.
+
+The m4_supervised_cluster_predictor_scores.csv file summarizes the performance. The F1-score is the most important metric here since it balances precision and recall, which is important for a imbalanced dataset.
+
+┌────────────┬─────────┬───────────────┬────────────────┬─────────────┐
+│ model      │ test_f1 │ test_accuracy │ test_precision │ test_recall │
+├────────────┼─────────┼───────────────┼────────────────┼─────────────┤
+│ PCA+KMeans │ 0.592   │ 0.576         │ 0.604          │ 0.581       │
+│ SVD+KMeans │ 0.592   │ 0.576         │ 0.604          │ 0.581       │
+│ NMF+KMeans │ 0.693   │ 0.530         │ 0.530          │ 1.000       │
+│ PCA+GMM    │ 0.693   │ 0.530         │ 0.530          │ 1.000       │
+│ SVD+GMM    │ 0.693   │ 0.530         │ 0.530          │ 1.000       │
+│ PCA+Agglo  │ 0.693   │ 0.530         │ 0.530          │ 1.000       │
+└────────────┴─────────┴───────────────┴────────────────┴─────────────┘
+
+#### Quantitative Findings:
+ * There is a reversal of the previous results. The models with the highest F1-scores are PCA+KMeans and SVD+KMeans, both achieving an F1 of ~0.592 and an accuracy of ~57.6%. While not a strong predictor, this is better than a 50/50 guess.
+ * The other four models, including the previous winner NMF+KMeans, performed very poorly. Their high F1-score is misleading; a recall of 1.0 and precision of 0.53 indicates they always predicted the majority class (`home_win` = 1), making them useless as predictors. Their accuracy of 53% is simply a reflection of the dataset's baseline.
+
+#### Qualitative Findings:
+The most mathematically "clean" clusters are not aligned with the factors that predict a home win.
+ * NMF likely found distinct groups based on features that, while structurally important in the data, have no effect on the game's outcome (e.g., clustering by month or weekday).
+ * PCA and SVD create components that capture the maximum variance in the data. While this leads to messier, more overlapping clusters (lower silhouette scores), these clusters retained some signal that was correlated with the game's outcome.
+
+---
+
+## 3. Conclusion
+
+There is no single "best" model. The choice depends entirely on the objective.
+
+ * For identifying distinct, well-separated data segments: NMF+KMeans is the superior model. Its high
+   silhouette score proves it is the most effective at partitioning the data into structurally sound clusters.
+
+ * For creating clusters that have some predictive value for game outcomes, PCA+KMeans and SVD+KMeans are the
+   best choices. Although their predictive lift is small, they are the only models that provide any signal for
+   the home_win target.
+
+Better, more predictive clusters may be achieved in engineering richer features. Rolling averages for team form, ballpark factors, and pitcher/batter platoon splits would likely create data structures where the "clean" clusters and the "predictive" clusters are similar.
+
 ---
 
 ## Repository Structure and Documentation
@@ -458,13 +568,17 @@ CSE-151A-Group-Project/
 ├── .venv/                          # Virtual environment
 ├── data/
 │   └── raw/
-│       └── games_2023.csv          # Raw MLB game data
-│       └── games_2016-2024_Milestone3.csv          # 2016-2024 MLB game data
+│       ├── games_2023.csv          # Raw MLB game data
+│       └── games_2016-2024_Milestone3.csv # 2016-2024 MLB game data
 ├── figs/                           # Generated visualizations  
 ├── notebooks/
 │   ├── milestone2_exploration.ipynb # Data exploration & preprocessing
-│   └── milestone3_modeling.ipynb   # Model training & evaluation for 2023
-│   └── milestone3_modeling_2016-2024.ipynb   # Model training & evaluation for 2016-2024
+│   ├── milestone3_modeling.ipynb   # Model training & evaluation for 2023
+│   ├── milestone3_modeling_2016-2024.ipynb # Model training & evaluation for 2016-2024
+│   ├── milestone4_all_models.ipynb # All models from milestone 4
+│   ├── milestone4_unsupervised_modeling.ipynb # PCA, KMeans Baseline from milestone 4
+│   ├── outputs/
+│   └── outputs2/
 ├── .gitignore
 ├── README.md                       # Project documentation
 └── requirements.txt               # Python dependencies
@@ -473,7 +587,9 @@ CSE-151A-Group-Project/
 ## Project Files
 - **[milestone2_exploration.ipynb](notebooks/milestone2_exploration.ipynb)** - Data preprocessing and feature engineering (2016-2023)
 - **[milestone3_modeling.ipynb](notebooks/milestone3_modeling.ipynb)** - Model training and optimization for MLB 2023 season
-- **[milestone3_modeling_2016-2024.ipynb](notebooks/milestone3_modeling.ipynb)** - Model training and optimization for MLB 2016-2024 seasons
+- **[milestone3_modeling_2016-2024.ipynb](notebooks/milestone3_modeling_2016-2024.ipynb)** - Model training and optimization for MLB 2016-2024 seasons
+- **[milestone4_all_models.ipynb](notebooks/milestone4_all_models.ipynb)** - All models from milestone 4
+- **[milestone4_unsupervised_modeling.ipynb](notebooks/milestone4_unsupervised_modeling.ipynb)** - Unsupervised models from milestone 4
 - **[games_2023.csv](data/raw/games_2023.csv)** - Raw MLB data for MLB 2023 season
-- **[games_2016-2024.csv](data/raw/games_2016-2024_Milestone3.csv)** - Raw MLB data for MLB 2016-2024 season
+- **[games_2016-2024_Milestone3.csv](data/raw/games_2016-2024_Milestone3.csv)** - Raw MLB data for MLB 2016-2024 season
 
