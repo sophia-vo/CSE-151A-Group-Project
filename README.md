@@ -491,16 +491,16 @@ The primary metric used is the Silhouette Score, which measures how similar an o
 
 The m4_model_comparison.csv file summarizes the best-performing configuration for each pipeline based on test set silhouette score.
 
-┌────────────┬─────────────────┬─────────────────────────────────────────────────┐
-│ model      │ test_silhouette │ interpretation                                  │
-├────────────┼─────────────────┼─────────────────────────────────────────────────┤
-│ NMF+KMeans │ 0.879           │ Encouraging: test >= train silhouette.          │
-│ PCA+GMM    │ 0.493           │ Stable: train and test silhouettes are similar. │
-│ PCA+Agglo  │ 0.493           │ Stable: train and test silhouettes are similar. │
-│ SVD+GMM    │ 0.492           │ Stable: train and test silhouettes are similar. │
-│ SVD+KMeans │ 0.337           │ Stable: train and test silhouettes are similar. │
-│ PCA+KMeans │ 0.337           │ Stable: train and test silhouettes are similar. │
-└────────────┴─────────────────┴─────────────────────────────────────────────────┘
+
+| model        | test_silhouette | interpretation                                  |
+| ------------ | --------------- | ----------------------------------------------- |
+| **NMF+KMeans** | **0.879**       | **Encouraging: test >= train silhouette.**      |
+| PCA+GMM      | 0.493           | Stable: train and test silhouettes are similar. |
+| PCA+Agglo    | 0.493           | Stable: train and test silhouettes are similar. |
+| SVD+GMM      | 0.492           | Stable: train and test silhouettes are similar. |
+| SVD+KMeans   | 0.337           | Stable: train and test silhouettes are similar. |
+| PCA+KMeans   | 0.337           | Stable: train and test silhouettes are similar. |
+
 
 #### Quantitative Findings:
  * NMF+KMeans is the overall 'best' model. Its best model achieved a silhouette score of 0.879, which is relatively high and indicates very dense, well-separated clusters.
@@ -523,16 +523,16 @@ To test this, the clusters were used to predict whether the home team would win.
 
 The m4_supervised_cluster_predictor_scores.csv file summarizes the performance. The F1-score is the most important metric here since it balances precision and recall, which is important for a imbalanced dataset.
 
-┌────────────┬─────────┬───────────────┬────────────────┬─────────────┐
-│ model      │ test_f1 │ test_accuracy │ test_precision │ test_recall │
-├────────────┼─────────┼───────────────┼────────────────┼─────────────┤
-│ PCA+KMeans │ 0.592   │ 0.576         │ 0.604          │ 0.581       │
-│ SVD+KMeans │ 0.592   │ 0.576         │ 0.604          │ 0.581       │
-│ NMF+KMeans │ 0.693   │ 0.530         │ 0.530          │ 1.000       │
-│ PCA+GMM    │ 0.693   │ 0.530         │ 0.530          │ 1.000       │
-│ SVD+GMM    │ 0.693   │ 0.530         │ 0.530          │ 1.000       │
-│ PCA+Agglo  │ 0.693   │ 0.530         │ 0.530          │ 1.000       │
-└────────────┴─────────┴───────────────┴────────────────┴─────────────┘
+
+| model        | test_f1 | test_accuracy | test_precision | test_recall |
+| ------------ | ------- | ------------- | -------------- | ----------- |
+| **PCA+KMeans** | **0.592** | **0.576**       | **0.604**        | **0.581**     |
+| **SVD+KMeans** | **0.592** | **0.576**       | **0.604**        | **0.581**     |
+| NMF+KMeans   | 0.693   | 0.530         | 0.530          | 1.000       |
+| PCA+GMM      | 0.693   | 0.530         | 0.530          | 1.000       |
+| SVD+GMM      | 0.693   | 0.530         | 0.530          | 1.000       |
+| PCA+Agglo    | 0.693   | 0.530         | 0.530          | 1.000       |
+
 
 #### Quantitative Findings:
  * There is a reversal of the previous results. The models with the highest F1-scores are PCA+KMeans and SVD+KMeans, both achieving an F1 of ~0.592 and an accuracy of ~57.6%. While not a strong predictor, this is better than a 50/50 guess.
