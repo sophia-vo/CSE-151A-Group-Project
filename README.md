@@ -5,6 +5,7 @@
   - [Notebook: milestone3_modeling.ipynb](notebooks/milestone3_modeling.ipynb)
   - [Notebook: milestone3_modeling_2016-2024.ipynb](notebooks/milestone3_modeling_2016-2024.ipynb)
 - [Milestone 4](#milestone-4)
+  - [Notebook: milestone4_all_models.ipynb](notebooks/milestone4_all_models.ipynb)
 
 ---
 
