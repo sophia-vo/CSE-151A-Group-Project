@@ -269,7 +269,7 @@ Contribution: Wrote code and README.md for Milestones 1, 3.  Wrote Abstract (Mil
 
 *Sharon Huang, Role: Coder, Writer*
 
-Contribution: Wrote code and README.md for Milestones 2, 3, 4. Revised final report.
+Contribution: Wrote code and README.md for Milestones 2, 3. Revised final report.
 
 *Mary Rong, Role: Coder, Writer*
 
