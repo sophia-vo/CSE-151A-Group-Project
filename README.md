@@ -80,7 +80,7 @@ for stat in ['OPS', 'ERA', 'WHIP', 'BA']:
     df[f'ratio_{stat.lower()}'] = df[f'home_{stat}'] / df[f'away_{stat}']
 ```
 
-Rolling performance metrics were calculated to capture recent team form over 7, 10, and 15-game windows. These rolling averages utilized a shift(1) operation to ensure only prior game data was included, preventing temporal data leakage.
+We computed 7/10/15-game rolling averages using groupby(team), shift(1), and rolling(...).
 
 ```python
 # Rolling averages with leakage prevention
@@ -90,7 +90,7 @@ df['home_last10_win_pct'] = (
 )
 ```
 
-Data partitioning used a temporal split strategy with 64% for training, 16% for validation, and 20% for testing, ensuring chronological order was preserved to simulate real-world prediction scenarios. A ColumnTransformer pipeline applied appropriate preprocessing to different feature types: numerical features received median imputation and standard scaling, categorical features received mode imputation and one-hot encoding, and polynomial features of degree 2 were generated for high-signal delta and ratio features. The final preprocessed feature space contained 81 features.
+We used a chronological 64/16/20 train/validation/test split. A ColumnTransformer pipeline applied appropriate preprocessing to different feature types: numerical features received median imputation and standard scaling, categorical features received mode imputation and one-hot encoding, and polynomial features of degree 2 were generated for high-signal delta and ratio features. The final preprocessed feature space contained 81 features.
 
 ### Model 1: Supervised Learning Baselines
 
