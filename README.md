@@ -231,11 +231,11 @@ We paired PCA/SVD/NMF with KMeans/GMM to test whether lower-dimensional structur
 
 Silhouette, Calinski–Harabasz, and Davies–Bouldin quantify cohesion/separation from different angles. We treated them as internal quality checks and then validated usefulness externally by mapping clusters to labels and measuring test accuracy/F1.
 
-The unsupervised learning models revealed fundamental trade-offs between internal cluster quality and external predictive power. NMF + KMeans produced structurally excellent clusters with high silhouette scores, suggesting the algorithm identified distinct, meaningful groupings in the feature space. However, these groupings were not correlated with game outcomes, indicating NMF may have clustered games based on non-predictive factors such as temporal patterns, league affiliations, or other structural elements.
+The unsupervised learning models revealed fundamental trade-offs between internal cluster quality and external predictive power. NMF + KMeans produced structurally excellent clusters with high silhouette scores, suggesting the algorithm identified distinct, meaningful groupings in the feature space. However, these groupings were not correlated with game outcomes, indicating NMF may have clustered games based on non-predictive factors such as temporal patterns, league affiliations, or other structural elements. This shows the limitation of solely relying on internal quality metrics like silhouette, since they only evaluate how well clusters are separated in feature space, but not whether those clusters are aligned with the actual game outcomes.
 
 On the other hand, PCA and SVD + KMeans produced lower-quality clusters but maintained some predictive capability. This pattern suggests these dimensionality reduction techniques captured variance components partially correlated with factors determining game outcomes. The 57.6% accuracy achieved by SVD + KMeans approaches the supervised learning performance while using no outcome information during training, indicating the presence of discoverable patterns in team performance data.
 
-Improved approaches such as using cluster assignments as additional features in supervised models could potentially improve performance while maintaining the benefits of unsupervised learning.
+Improved approaches, such as using cluster assignments as additional features in supervised models, could potentially improve performance while maintaining the benefits of unsupervised learning. With this hybrid strategy, the models would be able to capture hidden structures discovered by clustering while still relying on labeled data for direct outcome prediction.
 
 ## Conclusion
 
@@ -259,8 +259,8 @@ Contribution: Wrote code and README.md for Milestones
 *Sharon Huang, Role:*
 Contribution: Wrote code and README.md for Milestones 2,3,4.
 
-*Mary Rong, Role:*
-Contribution: Wrote code and README.md for Milestones
+*Mary Rong, Role: Coder, Writer*
+Contribution: Wrote code and README.md for Milestones 2, 3, 4. Revised final report draft.
 
 ---
 
