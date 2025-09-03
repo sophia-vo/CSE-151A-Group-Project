@@ -1,198 +1,88 @@
-# Introduction
+TODO: Add all other information from milestone 2, 3, 4 into report. All final milestones are on branch milestone4 readme
 
-**Goal.** Predict MLB single-game outcomes (home win/loss) using team stats and simple unsupervised structure.
+# Predicting Major League Baseball Game Outcomes: A Machine Learning Approach
 
-**Data.** MLB games 2016–2024 (excl. 2020) via `pybaseball`; target = `home_win`. Leakage prevented via temporal splits and careful feature construction.
+## Table of Contents
 
-**Methods.** 
-- **Model 1 (Milestone 3):** supervised baselines (Naive Bayes, SVM, Decision Tree, KNN) on an 81-feature, leakage-safe pipeline.
-- **Model 2 (Milestone 4):** unsupervised pipelines (**PCA/SVD/NMF → KMeans**, **PCA/SVD → GMM**, **PCA → Agglomerative**); map clusters to labels.
+- [Introduction](#introduction)
+- [Methods](#methods)
+  - [Data Exploration](#data-exploration)
+  - [Preprocessing](#preprocessing)
+  - [Model 1: Supervised Learning Baselines](#model-1-supervised-learning-baselines)
+  - [Model 2: Unsupervised Clustering](#model-2-unsupervised-clustering)
+- [Results](#results)
+  - [Data Exploration Results](#data-exploration-results)
+  - [Preprocessing Results](#preprocessing-results)
+  - [Model 1 Results](#model-1-results)
+  - [Model 2 Results](#model-2-results)
+- [Discussion](#discussion)
+  - [Data Exploration Discussion](#data-exploration-discussion)
+  - [Preprocessing Discussion](#preprocessing-discussion)
+  - [Model 1 Discussion](#model-1-discussion)
+  - [Model 2 Discussion](#model-2-discussion)
+- [Conclusion](#conclusion)
+- [References](#references)
 
-**Key results.**
-- **Model 1 (Naive Bayes):** Val **59.5%**, test **balanced acc 0.5768**, **macro-F1 0.5727**, ~**+7.7 pts** over 52% baseline; near sweet-spot.
-- **Model 2 (final pick: SVD+KMeans, k=2):** Test **acc 0.5756**, **F1 0.5920** (TN=1041, FP=786, FN=864, TP=1197), small train–test gap → low variance / high bias.
-- **Insight.** Cleanest clusters (**NMF+KMeans**, silhouette ~0.879) weren’t predictive; **SVD/PCA+KMeans** gave modest predictive lift.
+## Introduction
 
-**Takeaway.** Further gains require richer features (park factors, platoons, weather) and a supervised model using soft cluster probabilities or embeddings.
+This project addresses the problem of predicting Major League Baseball (MLB) game outcomes, specifically whether the home team or away team will win a single game. The topic was chosen because it represents a classic application in sports analytics where machine learning techniques can be applied to a field with accessible historical data and unpredictability.
 
----
+The development of accurate predictive models for MLB games has a substantial impact on decision-making. Teams and franchises can leverage such models for strategic choices, including roster evaluation, performance assessment, and game-day strategy development. Media organizations and broadcasters benefit from enhanced fan engagement through data-driven pre-game analysis and win probability assessments that enrich commentary and storytelling. Additionally, these models serve as fundamental infrastructure for fantasy sports platforms and sports betting markets, where predictive accuracy directly influences financial outcomes for millions of participants.
 
-# Table of Contents
-- [Milestone 2](#milestone-2)
-  - [Notebook: milestone2_exploration.ipynb](notebooks/milestone2_exploration.ipynb)
-- [Milestone 3](#milestone-3)
-  - [Notebook: milestone3_modeling.ipynb](notebooks/milestone3_modeling.ipynb)
-  - [Notebook: milestone3_modeling_2016-2024.ipynb](notebooks/milestone3_modeling_2016-2024.ipynb)
-- [Milestone 4](#milestone-4)
-  - [Notebook: milestone4_all_models.ipynb](notebooks/milestone4_all_models.ipynb)
+The significance of developing reliable predictive models extends beyond immediate applications. Baseball's inherent complexity, with its blend of individual and team performance factors, seasonal variations, and situational dynamics, makes even modest improvements in predictive accuracy a meaningful achievement for sports analytics and machine learning applications to real-world problems.
 
----
+## Methods
 
-# Milestone 2
+### Data Exploration
 
-**Goal:** Use the [pybaseball](https://pypi.org/project/pybaseball/) library to collect historical MLB data and explore it to prepare features for a decision tree classifier that predicts single-game outcomes (win/loss).
+The dataset was constructed using the pybaseball library to scrape comprehensive MLB data from Baseball-Reference, Baseball Savant, and FanGraphs. Data collection covered MLB regular seasons from 2016 to 2024, excluding the shortened 2020 season due to its atypical nature. The target variable home_win was defined as a binary indicator where 1 represents a home team victory and 0 represents an away team victory.
 
-We will train a simple, interpretable DecisionTreeClassifier on features like team batting/pitching strength (BA, OPS, ERA), and recent form (e.g., last-10 win %). In Milestone 2 we focus on data exploration and explainign the initial preprocessing plan.
+Initial data examination revealed 19,436 games with comprehensive game-level information including dates, team identifiers, and final scores. Season-level team statistics were integrated, encompassing batting metrics such as batting average, on-base percentage, slugging percentage, and on-base plus slugging (OPS), along with pitching statistics including earned run average (ERA) and walks plus hits per inning pitched (WHIP). The dataset structure included both categorical variables for teams, dates, and game conditions, and continuous variables for performance statistics.
 
-## Dataset
+ * season: int64 (19436 non-null) - The year of the MLB season.
+   * date: object (19436 non-null) - The date of the game.
+   * home_team: object (19436 non-null) - The home team's abbreviation.
+   * away_team: object (19436 non-null) - The away team's abbreviation.
+   * home_runs: float64 (19436 non-null) - The number of runs scored by the home team.
+   * away_runs: float64 (19436 non-null) - The number of runs scored by the away team.
+   * home_win: int64 (19436 non-null) - 1 if the home team won, 0 otherwise.
+   * run_diff: float64 (19436 non-null) - The difference in runs (home - away).
+   * month: int64 (19436 non-null) - The month of the game.
+   * weekday: object (19436 non-null) - The day of the week of the game.
+   * day_night: object (19436 non-null) - Whether the game was played during the day or at night.
+   * home_league: object (19436 non-null) - The league of the home team.
+   * away_league: object (18788 non-null) - The league of the away team.
+   * is_interleague: int64 (19436 non-null) - 1 if the game was between teams from different leagues, 0 otherwise.
+   * game_id: int64 (19436 non-null) - A unique identifier for the game.
+   * home_BA: float64 (19436 non-null) - The home team's season batting average.
+   * home_OBP: float64 (19436 non-null) - The home team's season on-base percentage.
+   * home_SLG: float64 (19436 non-null) - The home team's season slugging percentage.
+   * home_OPS: float64 (19436 non-null) - The home team's season on-base plus slugging.
+   * home_season_runs: int64 (19436 non-null) - The home team's total runs for the season.
+   * home_ERA: float64 (19436 non-null) - The home team's season earned run average.
+   * home_WHIP: float64 (19436 non-null) - The home team's season walks and hits per inning pitched.
+   * away_BA: float64 (18788 non-null) - The away team's season batting average.
+   * away_OBP: float64 (18788 non-null) - The away team's season on-base percentage.
+   * away_SLG: float64 (18788 non-null) - The away team's season slugging percentage.
+   * away_OPS: float64 (18788 non-null) - The away team's season on-base plus slugging.
+   * away_season_runs: float64 (18788 non-null) - The away team's total runs for the season.
+   * away_ERA: float64 (18788 non-null) - The away team's season earned run average.
+   * away_WHIP: float64 (18788 non-null) - The away team's season walks and hits per inning pitched.
 
-We will build our dataset with `pybaseball`, scrapping from:
-- **PyPI: pybaseball**: https://pypi.org/project/pybaseball/  
-- **Upstream data sources accessed by pybaseball**:  
-  - Baseball-Reference (team game logs, schedules/records) — https://www.baseball-reference.com/  
-  - Baseball Savant / Statcast (pitch- and batted-ball–level) — https://baseballsavant.mlb.com/  
-  - FanGraphs (season/team batting & pitching leaderboards) — https://www.fangraphs.com/
+### Preprocessing
 
-We will fetch team `schedule-and-record` data and `team-level batting/pitching` metrics to derive features (e.g., rolling last-10 win%, OPS, ERA) in order to predict the `home_win` (1 = home team won, 0 = lost).
-
-## Environment setup
-
-- **Python**: 3.9–3.12  
-- **Install** (virtualenv or conda):
-  ```bash
-  # if you are using venv
-  python -m venv .venv
-  source .venv/bin/activate  # Windows: .venv\Scripts\activate
-  pip install -r requirements.txt
-  ```
-  ```bash
-  # if you're using conda
-  conda create -n mlb python=3.11 -y
-  conda activate mlb
-  pip install -r requirements.txt
-  ```
-
-- **Requirements** located in `requirements.txt`. (check pybaseball endpoints in case of change)
-
---- 
-# The Data
-
-## Observations
-
-THe scope of our data is the 2023 MLB regular season *(we're changing this to expand)*
- - ~2.4k games per season (TODO)
- - Each row represents one game -> remove duplicates only take home team perspc 
- - target column to predict: `home_win` (1 if the home team won, else 0)
-
-
-Features:
- Team:  battng stats eg BA, OBP, SLG, pitching stats etc -> have to compute these
- Recent form: rolling last-10 (or 7/15) game win %, recent runs scored/allowed per game etc etc
- other: day/night, doubleheader flag, interleague, etc
-
-
-TODO: get from notebook outputs (need to upscale)
-
----
-
-## Data plots
-
-### Histograms of continuous features (e.g., OPS, ERA)
-![Home OPS](figs/home_OPS_hist.png)
-![Away OPS](figs/away_OPS_hist.png)
-![Home ERA](figs/home_ERA_hist.png)
-![Away ERA](figs/away_ERA_hist.png)
-
-### Bar chart of home_win rate by team (sanity check for home-field advantage)
-![Home win rate by team](figs/bar_home_win_rate_by_team.png)
-
-### Scatter: team OPS vs. win rate (league-wide)
-![Home OPS (deciles) vs. win rate](figs/home_ops_deciles_vs_winrate.png)
-
-### Rolling last-10 win % distribution.  
-![Rolling last-10 win % distribution](figs/roll10_winpct_hist.png)
-
----
-
-# Milestone 3
-
-## Summary
-
----
-
-### 1. Preprocessing 
-We completed major preprocessing steps using a pipeline approach:
-- **Scaling/Transformation**: StandardScaler for numeric features, one-hot encoding for categorical features  
-- **Imputation**: Median for numeric features, mode for categorical features  
-- **Feature Expansion**: Polynomial expansion (degree 2) on high-signal stats (OPS, ERA, BA, WHIP)  
-- **Custom Feature Engineering**: Baseball-specific deltas, ratios, and rolling win% metrics  
-
--> Result: Final feature space of 81 features (up from 29 raw) with no leakage.
-
----
-
-### 2. First Model Training & Performance 
-We trained multiple baseline classifiers (Naive Bayes, SVM, Decision Tree, KNN).  
-
-- **Best model (Naive Bayes)**:  
-  - Train Accuracy: **58.8%**  
-  - Validation Accuracy: **59.5%**  
-  - Train–Val gap: **-0.7%** (excellent generalization)  
-- **Other models**:  
-  - SVM (62.3% train / 58.4% val) → mild overfitting  
-  - Decision Tree (60.5% / 58.1%) → balanced, slightly underfit  
-  - KNN (64.2% / 54.6%) → strong overfitting  
-
--> Naive Bayes chosen as the baseline "first model" due to stability and generalization.
-
----
-
-### 3. Bias–Variance / Fitting Analysis 
-
-<img src="figs/fitting_graph.png" alt="Fitting Curve" width="30%"/>
-
-Where our models sit in the fitting curve (see figure above):
-- **Naive Bayes**: Near the "sweet spot" → balanced, minimal gap.  
-- **KNN**: Overfitting region (low training error, high test error).  
-- **Decision Tree**: Slightly underfitting (higher bias).  
-
-Next planned models:
-- **Random Forest** → variance reduction via bagging.  
-- **XGBoost/Gradient Boosting** → capture more complex feature interactions.  
-- **Ensemble (NB + RF)** → combine generalization with variance reduction.  
-
----
-
-### 4. Conclusion 
-
-**Conclusion of 1st Model (Naive Bayes):**
-- Achieved **59.5% validation accuracy**, ~7.7% above baseline 52%.  
-- Excellent generalization with no overfitting.  
-- Limited by feature scope (team-level stats only, no player/injury data).  
-
-**Possible Improvements:**
-- Add **player-level and contextual features** (injuries, weather, travel).  
-- Use **ensemble methods (RF, XGBoost)** to improve variance control.  
-- Experiment with **temporal window tuning** (recent seasons only) to reduce concept drift.  
-
----
-
-## 1. Data Preprocessing and Feature Engineering
-
-### Dataset Overview
-- **Source**: MLB 2016-2024 season games (excluding 2020) via pybaseball API
-- **Initial Data**: 19,436 games with 29 features
-- **Final Dataset**: 19,436 games with 81 engineered features
-- **Target**: Binary classification (home team win/loss)
-
-### Preprocessing Pipeline Implementation
-
-Our preprocessing approach addressed scaling, imputation, encoding, and feature expansion through a systematic multi-step pipeline:
-
-**Data Cleaning**: Removed outcome-leaking features (home_runs, away_runs, run_diff) to ensure predictions use only pre-game information.
-
-**Feature Engineering**: Created baseball-specific metrics from team statistics:
-- **Team Strength Differentials**: Delta features (home_OPS - away_OPS) 
-- **Performance Ratios**: Ratio features (home_ERA / away_ERA)
-- **Rolling Form**: Time-aware win percentages over 7, 10, 15-game windows
-- **ERA Advantage**: away_ERA - home_ERA (positive indicates home pitching advantage)
+Data cleaning procedures removed outcome-leaking features including home_runs, away_runs, and run_diff to prevent data leakage during model training. A comprehensive feature engineering pipeline was implemented to capture team matchup dynamics through differential and ratio calculations.
 
 ```python
 # Key feature engineering implementation
 for stat in ['OPS', 'ERA', 'WHIP', 'BA']:
     df[f'delta_{stat.lower()}'] = df[f'home_{stat}'] - df[f'away_{stat}']
     df[f'ratio_{stat.lower()}'] = df[f'home_{stat}'] / df[f'away_{stat}']
+```
 
+Rolling performance metrics were calculated to capture recent team form over 7, 10, and 15-game windows. These rolling averages utilized a shift(1) operation to ensure only prior game data was included, preventing temporal data leakage.
+
+```python
 # Rolling averages with leakage prevention
 df['home_last10_win_pct'] = (
     df.groupby('home_team')['home_win']
@@ -200,20 +90,11 @@ df['home_last10_win_pct'] = (
 )
 ```
 
-**Scaling and Transformation**:
-- **Numerical Features**: StandardScaler after median imputation
-- **Categorical Features**: One-hot encoding with mode imputation
-- **Polynomial Expansion**: Degree-2 features applied to high-signal variables (deltas, ratios)
+Data partitioning used a temporal split strategy with 64% for training, 16% for validation, and 20% for testing, ensuring chronological order was preserved to simulate real-world prediction scenarios. A ColumnTransformer pipeline applied appropriate preprocessing to different feature types: numerical features received median imputation and standard scaling, categorical features received mode imputation and one-hot encoding, and polynomial features of degree 2 were generated for high-signal delta and ratio features. The final preprocessed feature space contained 81 features.
 
-**Data Splitting**: Temporal split (64% train / 16% validation / 20% test) to prevent future data leakage.
+### Model 1: Supervised Learning Baselines
 
-**Final Feature Space**: 13,591 training samples × 81 features with balanced classes (53% home wins).
-
----
-
-## 2. Model Training and Performance Analysis
-
-### Model Training Implementation
+Four baseline supervised learning algorithms were implemented and evaluated: Gaussian Naive Bayes, Support Vector Machine with RBF kernel, Decision Tree, and K-Nearest Neighbors. Model-specific parameters were configured as follows: Decision Tree used max_depth=5 and min_samples_leaf=5, KNN employed n_neighbors=15, and SVM utilized C=2.0 with gamma='scale' and balanced class weights.
 
 ```python
 from sklearn.svm import SVC
@@ -224,9 +105,9 @@ from sklearn.metrics import accuracy_score
 
 # Model configurations
 models = {
-    "SVM_RBF": SVC(C=2.0, gamma='scale', probability=True, 
+    "SVM_RBF": SVC(C=2.0, gamma='scale', probability=True,
                    class_weight='balanced', random_state=42),
-    "DecisionTree": DecisionTreeClassifier(max_depth=5, min_samples_leaf=5, 
+    "DecisionTree": DecisionTreeClassifier(max_depth=5, min_samples_leaf=5,
                                          random_state=42),
     "KNN": KNeighborsClassifier(n_neighbors=15),
     "NaiveBayes": GaussianNB()
@@ -246,391 +127,120 @@ for name, model in models.items():
     })
 ```
 
-### Initial Model Comparison
+Hyperparameter optimization was conducted through grid search for each model. Naive Bayes var_smoothing parameter was tuned, Decision Tree max_depth and min_samples_leaf were optimized, and SVM C and gamma parameters were searched systematically to identify optimal configurations.
 
-Results from training four algorithms with systematic evaluation:
+### Model 2: Unsupervised Clustering
 
-| Model | Training Accuracy | Validation Accuracy | Training-Val Gap |
-|-------|------------------|-------------------|------------------|
-| **Naive Bayes** | **58.8%** | **59.5%** | **-0.7%** |
-| SVM RBF | 62.3% | 58.4% | 3.9% |
-| Decision Tree | 60.5% | 58.1% | 2.4% |
-| KNN | 64.2% | 54.6% | 9.6% |
+Six unsupervised learning pipelines were developed combining dimensionality reduction techniques with clustering algorithms: PCA + KMeans, TruncatedSVD + KMeans, Non-negative Matrix Factorization + KMeans, PCA + Gaussian Mixture Models, SVD + GMM, and PCA + Agglomerative Clustering. Each pipeline underwent a hyperparameter search, varying the number of components for dimensionality reduction and the number of clusters (k) for clustering algorithms.
 
-
-### Test Metrics
-| Metric | Value |
-|---|---|
-| Balanced Accuracy | 0.5768 |
-| Macro F1 | 0.5727 |
-
----
-
-### Validation Classification Report
-| Class | Precision | Recall | F1-score | Support |
-|---|---:|---:|---:|---:|
-| Away(0) | 0.58 | 0.50 | 0.54 | 1587 |
-| Home(1) | 0.61 | 0.68 | 0.64 | 1810 |
-| **accuracy** |  |  | 0.60 | 3397 |
-| **macro avg** | 0.59 | 0.59 | 0.59 | 3397 |
-| **weighted avg** | 0.59 | 0.60 | 0.59 | 3397 |
-
-**Validation Confusion Matrix**
-<!--| Actual \\ Pred | Away(0) | Home(1) |
-|---|---:|---:|
-| Away(0) | 800 | 787 |
-| Home(1) | 588 | 1222 | -->
-<img src="figs/confusion_matrix_validation.png" alt="Validation Confusion Matrix" width="50%"/>
-
----
-
-### Test Classification Report
-| Class | Precision | Recall | F1-score | Support |
-|---|---:|---:|---:|---:|
-| Away(0) | 0.59 | 0.46 | 0.52 | 2068 |
-| Home(1) | 0.58 | 0.69 | 0.63 | 2180 |
-| **accuracy** |  |  | 0.58 | 4248 |
-| **macro avg** | 0.58 | 0.58 | 0.57 | 4248 |
-| **weighted avg** | 0.58 | 0.58 | 0.57 | 4248 |
-
-**Test Confusion Matrix**
-<!--| Actual \\ Pred | Away(0) | Home(1) |
-|---|---:|---:|
-| Away(0) | 957 | 1111 |
-| Home(1) | 674 | 1506 |-->
-<img src="figs/confusion_matrix_test.png" alt="Confusion Matrix" width="50%"/>
-
----
-
-### Hyperparameter Optimization Results
-
-**Naive Bayes Grid Search** (Top 5 configurations):
-
-<!-- | C | gamma | Training Acc | Validation Acc | Gap |
-|---|-------|-------------|---------------|-----|
-| **1.0** | **scale** | **60.8%** | **58.5%** | **2.3%** |
-| 2.0 | scale | 62.3% | 58.4% | 3.9% |
-| 0.5 | scale | 60.0% | 58.4% | 1.6% |
-| 0.5 | 0.05 | 65.7% | 58.3% | 7.4% |
-| 1.0 | 0.05 | 70.7% | 57.5% | 13.2% | -->
-
-| var\_smoothing | Training Acc | Validation Acc | Gap   |
-| -------------- | ------------ | -------------- | ----- |
-| 1.000000e-12   | 58.8%        | 59.5%          | -0.7% |
-| 3.162278e-12   | 58.8%        | 59.5%          | -0.7% |
-| 1.000000e-11   | 58.8%        | 59.5%          | -0.7% |
-| 3.162278e-11   | 58.8%        | 59.5%          | -0.7% |
-| 1.000000e-10   | 58.8%        | 59.5%          | -0.7% |
-
-
+Model evaluation used both internal cluster quality metrics (Silhouette Score, Calinski-Harabasz Score, Davies-Bouldin Score) and external predictive performance assessment. For predictive evaluation, clusters were assigned class labels based on the majority class of training data within each cluster, and standard classification metrics were calculated on the test set.
 
 ```python
-# Hyperparameter optimization implementation
-nb_grid = {"var_smoothing": np.logspace(-12, -6, 13)}
-best_nb = evaluate_grid(GNB, nb_grid, X_tr, y_tr, X_va, y_va)
-# Result: var_smoothing=1.000000e-12 achieved optimal generalization
+def cluster_conditional_predict(y_true: np.ndarray, labels_train: np.ndarray, labels_test: np.ndarray, threshold: float=0.5):
+    stats = pd.DataFrame({"c": labels_train, "y": y_true}).groupby("c")["y"].agg(["size","sum"]).reset_index()
+    stats["pos_rate"] = stats["sum"] / stats["size"].clip(lower=1)
+    rate_map = dict(zip(stats["c"], stats["pos_rate"]))
+    y_pred = np.array([1 if rate_map.get(c, 0.0) >= threshold else 0 for c in labels_test], dtype=int)
+    return stats.rename(columns={"c":"cluster"}), y_pred
 ```
 
-**Decision Tree Grid Search** (Top 4 configurations):
+## Results
 
-| max_depth | min_samples_leaf | Training Acc | Validation Acc |
-|-----------|------------------|-------------|---------------|
-| 4 | 1 | 59.64% | **58.4%** |
-| 4 | 3 | 59.64% | **58.4%** |
-| 4 | 5 | 59.64% | **58.4**% |
-| 4 | 10 | 59.59% | 58.3% |
+### Data Exploration Results
 
-### Training vs. Validation Performance Analysis
+The final dataset contained 19,436 MLB games spanning the 2016-2024 seasons with comprehensive team and game-level statistics. Data quality assessment revealed complete coverage for most variables, with minor missing values in away team league designation (648 missing values). The target variable distribution showed a home field advantage with 53% of games won by home teams, providing a natural baseline for model comparison.
 
-**Key Performance Improvement**:
-- **Original NB**: 58.8% train → 59.5% val (-0.7% gap)
-- **Optimized NB**: 58.8% train → 59.5% val (-0.7% gap)
-- **No Improvement**: 0% reduction in overfitting + 0% validation accuracy gain
+Team performance distributions demonstrated normal patterns for offensive statistics (OPS) and pitching metrics (ERA), with home teams showing slight advantages in offensive production. Temporal analysis revealed consistent patterns across seasons and months, with no significant data quality issues requiring additional cleaning beyond the initial preprocessing steps.
 
-**Sample Model Predictions**:
+![Distribution of home team OPS values showing normal distribution with slight rightward shift](figs/home_OPS_hist.png "Home Team OPS Distribution")  
+**Figure 1.** The distribution reveals that home team offensive performance follows a normal pattern with a slight advantage over away teams.
 
-| Dataset    | Actual   | Predicted | Probability | Result      |
-| ---------- | -------- | --------- | ----------- | ----------- |
-| Train      | Home Win | Away Win  | 28.7%       | ✗ Incorrect |
-| Train      | Home Win | Away Win  | 25.1%       | ✗ Incorrect |
-| Train      | Away Win | Home Win  | 97.6%       | ✗ Incorrect |
-| Train      | Home Win | Home Win  | 100.0%      | ✓ Correct   |
-| Train      | Home Win | Away Win  | 0.6%        | ✗ Incorrect |
-| Validation | Away Win | Home Win  | 100.0%      | ✗ Incorrect |
-| Validation | Home Win | Home Win  | 100.0%      | ✓ Correct   |
-| Validation | Home Win | Away Win  | 0.0%        | ✗ Incorrect |
-| Validation | Home Win | Home Win  | 100.0%      | ✓ Correct   |
-| Validation | Away Win | Home Win  | 97.7%       | ✗ Incorrect |
-| Test       | Home Win | Home Win  | 99.6%       | ✓ Correct   |
-| Test       | Away Win | Home Win  | 57.6%       | ✗ Incorrect |
-| Test       | Away Win | Home Win  | 100.0%      | ✗ Incorrect |
-| Test       | Away Win | Home Win  | 99.9%       | ✗ Incorrect |
-| Test       | Away Win | Home Win  | 100.0%      | ✗ Incorrect |
+![Distribution of away team OPS values showing normal distribution](figs/away_OPS_hist.png "Away Team OPS Distribution")  
+**Figure 2.** Away team offensive performance distribution demonstrates the typical spread of batting capabilities across MLB teams.
 
+![Distribution of home team ERA values concentrated around league average](figs/home_ERA_hist.png "Home Team ERA Distribution")  
+**Figure 3.** Home team pitching performance shows concentration around league-average ERA values.
 
----
+![Distribution of away team ERA values with similar concentration pattern](figs/away_ERA_hist.png "Away Team ERA Distribution")  
+**Figure 4.** Away team ERA distribution mirrors the home team pattern, indicating consistent pitching quality across venues.
 
-## 3. Bias-Variance Analysis and Model Selection
+![Bar chart showing home win percentages by team with league average line at 53%](figs/bar_home_win_rate_by_team.png "Home Win Rate by Team")  
+**Figure 5.** The variation in home win rates across teams confirms the existence of home-field advantage while highlighting teams with particularly strong home performance.
 
-### Model Diagnosis Framework
+### Preprocessing Results
 
-We developed a systematic approach to classify model performance on the bias-variance spectrum:
+Feature engineering successfully created 81 final features from the original dataset variables. Delta features captured relative team strengths with meaningful ranges (e.g., OPS differentials ranging from -0.3 to +0.3), while ratio features provided normalized comparisons between matchup opponents. Rolling performance calculations generated recent form metrics for 7, 10, and 15-game windows, with successful leakage prevention confirmed through temporal validation.
 
-```python
-def fit_position(train_acc, val_acc, baseline=0.52, gap_thresh=0.08):
-    gap = train_acc - val_acc
-    if gap > gap_thresh: return "Overfitting (high variance)"
-    if val_acc < baseline + 0.03: return "Underfitting (high bias)" 
-    return "Near sweet-spot"
-```
+The ColumnTransformer pipeline processed all feature types appropriately, with numerical features standardized to zero mean and unit variance, categorical features expanded through one-hot encoding, and polynomial features capturing potential non-linear relationships. Missing value imputation affected less than 5% of the dataset, primarily in away team statistics for interleague games.
 
-### Comprehensive Model Analysis
+### Model 1 Results
 
-| Model         | Train Acc | Val Acc | Gap     | Diagnosis                   |
-|---------------|-----------|---------|---------|-----------------------------|
-| **NaiveBayes**| **0.588** | **0.595** | **-0.007** | **Near sweet-spot**         |
-| SVM_RBF       | 0.623     | 0.584   | 0.039   | Near sweet-spot             |
-| DecisionTree  | 0.605     | 0.581   | 0.025   | Near sweet-spot             |
-| KNN           | 0.642     | 0.546   | 0.096   | Overfitting (high variance) |
+Initial model comparison on validation data identified Naive Bayes as the top performer:
 
-### Learning Curve Analysis
+| Model | Training Accuracy | Validation Accuracy |
+|-------|------------------|---------------------|
+| **Naive Bayes** | **58.8%** | **59.5%** |
+| SVM RBF | 62.3% | 58.4% |
+| Decision Tree | 60.5% | 58.1% |
+| KNN | 64.2% | 54.6% |
 
-To further evaluate model fit, we plotted a learning curve for our best-performing model (SVM RBF).  
-This shows training and validation accuracy as the training set size increases.
+*Naive Bayes performance metrics*
 
-![Learning Curve SVM](figs/learning_curve_svm.png)
+The best-performing Naive Bayes model achieved 59.5% validation accuracy and 58.0% test accuracy, with macro F1-scores of 0.59 and 0.57 respectively. Hyperparameter optimization showed Naive Bayes was robust to var_smoothing parameter variations, maintaining stable performance across the tested range.
 
-### Hyperparameter Impact on Bias-Variance
+Test set confusion matrix for Naive Bayes revealed: True Positives (Home Wins): 1,506, True Negatives (Away Wins): 957, False Positives: 1,111, False Negatives: 674. These results demonstrate meaningful improvement over the 53% baseline accuracy from always predicting home team victories.
 
-**Naive Bayes Optimization Journey**:
-- **Initial**: var_smoothing=1e-9 → -0.007% gap (near optimal complexity)
-- **Optimized**: var_smoothing=1e-12 → -0.007% gap (near optimal complexity)
+![Confusion matrix showing validation set performance for Naive Bayes model](figs/confusion_matrix_validation.png "Validation Confusion Matrix")  
+**Figure 6.** The validation set confusion matrix demonstrates the Naive Bayes model's classification performance across home and away win predictions.
 
-The optimization did not change the overall validation performance of our model.
+![Confusion matrix showing test set performance for Naive Bayes model](figs/confusion_matrix_test.png "Test Confusion Matrix")  
+**Figure 7.** The test set results confirm the model's generalization capability with consistent performance patterns.
 
-### Next Model Recommendations
+### Model 2 Results
 
-**Based on systematic bias-variance analysis and "Near sweet-spot" positioning**:
+Internal cluster quality assessment showed NMF + KMeans achieved the highest silhouette score of 0.879, indicating well-separated, coherent clusters. Other pipelines demonstrated lower internal quality, with PCA/SVD + KMeans models scoring approximately 0.337 on silhouette metrics.
 
-1. **Random Forest (Primary Choice)**
-   - **Rationale**: Ensemble bagging reduces variance while maintaining high performance
-   - **Expected Performance**: 62-64% validation accuracy with improved stability
-   - **Implementation Plan**: 100-200 trees, max_depth=8-12, bootstrap sampling
+Predictive performance revealed an inverse relationship between cluster quality and predictive power. PCA + KMeans and SVD + KMeans achieved the best predictive performance with test F1-scores of 0.592 and test accuracy of 57.6%. The NMF + KMeans model, despite better cluster quality, showed no predictive capability and defaulted to majority class prediction.
 
-2. **XGBoost/Gradient Boosting**
-   - **Rationale**: Sequential boosting can capture complex feature interactions our SVM might miss
-   - **Expected Performance**: 63-65% accuracy potential with proper regularization
-   - **Risk Management**: Requires careful early stopping and regularization to prevent overfitting
+Best unsupervised model performance (SVD + KMeans with k=2): Test Accuracy of 57.6%, Test F1-Score of 0.592, with confusion matrix values [[1041, 786], [864, 1197]] for [[TN, FP], [FN, TP]] respectively.
 
-3. **Ensemble Combination (SVM + Random Forest)**
-   - **Rationale**: Combines SVM's optimal complexity with Random Forest's variance reduction
-   - **Method**: Weighted voting or stacking approach
-   - **Expected**: Best of both algorithms while reducing individual model weaknesses
+## Discussion
 
-**Why These Specific Models**: Since our current NB sits in the optimal complexity region, improvements should focus on ensemble methods that reduce variance and capture feature interactions, rather than single models requiring extensive hyperparameter tuning.
+### Data Exploration Discussion
 
----
+The dataset structure and quality were marginally sufficient for meaningful machine learning analysis. The 53% home win rate confirms the slight home field advantage in baseball, providing a reasonable baseline for model evaluation. The normal distributions observed in key performance metrics (OPS, ERA) align with expected statistical patterns in professional sports, suggesting the data captures genuine team performance differences rather than artifacts of data collection processes.
 
-## 4. Conclusions
+The comprehensive coverage from 2016-2024 provides substantial temporal depth while excluding the anomalous 2020 season (COVID) to maintain data consistency. Missing values were minimal and concentrated in predictable areas (interleague game designations).
 
-### Model Performance Summary
+### Preprocessing Discussion
 
-Our hyperparameter-optimized NB achieved **59.5% validation accuracy** with excellent generalization (-0.007% training-validation gap). This represents a 7.7 percentage point improvement over the 52% baseline while demonstrating proper model complexity control.
+The feature engineering strategy successfully captured team matchup dynamics through delta and ratio calculations. These engineered features represent meaningful baseball concepts: delta features directly measure team strength differences, while ratio features provide normalized comparisons that account for league-wide performance variations. The polynomial feature generation for high-signal features allowed the models to capture potential non-linear interactions between team strengths.
 
-**Key Achievements**:
-<!-- - **73% reduction in overfitting** through systematic hyperparameter optimization -->
-- **Feature engineering success**: 29 → 81 meaningful features capturing baseball dynamics
-- **Leakage-free methodology**: Temporal splitting and careful preprocessing maintained prediction integrity
-- **Calibrated predictions**: Probability outputs (40-63%) reflect appropriate confidence levels
+Rolling performance metrics captured recent team form, with the temporal leakage prevention through shift(1) operations ensuring model validity. The 81-feature final space represents a balance between comprehensive representation and computational tractability, though the dimensionality may have contributed to some overfitting in complex models like KNN.
 
-### Model Limitations
+### Model 1 Discussion
 
-**Performance Constraints**: 59.5% accuracy reflects baseball's inherent unpredictability where many games are genuinely close contests influenced by factors beyond team statistics.
+Naive Bayes was the best supervised learning baseline due to its strong generalization capability, as seen by the minimal train-validation accuracy gap (58.8% vs 59.5%). This negative gap suggests a slight underperformance on training data. The model is not overfitting and may generalize well to new data. The 58-59% accuracy range represents a meaningful improvement of 5-6% over the 53% baseline, though due to this low value we can acknowledge the fundamental unpredictability inherent in baseball games.
 
-**Data Limitations**: Single-season dataset may miss multi-year patterns, player development cycles, and organizational changes affecting team performance.
+Other models showed worse patterns: KNN demonstrated significant overfitting (64.2% training vs 54.6% validation), suggesting the model memorized training patterns that did not generalize. SVM showed moderate overfitting, while Decision Tree performance fell between these extremes. The improved performance of Naive Bayes likely reflects its probabilistic nature and independence assumptions, which may be well-suited to the complex, partially independent factors influencing baseball game outcomes.
 
-**Feature Scope**: Current features focus on team-level statistics but lack player-specific information about injuries, lineup changes, and individual matchup advantages.
+### Model 2 Discussion
 
-### Improvement Strategies
+The unsupervised learning models revealed fundamental trade-offs between internal cluster quality and external predictive power. NMF + KMeans produced structurally excellent clusters with high silhouette scores, suggesting the algorithm identified distinct, meaningful groupings in the feature space. However, these groupings were not correlated with game outcomes, indicating NMF may have clustered games based on non-predictive factors such as temporal patterns, league affiliations, or other structural elements.
 
-Target: 60-65% accuracy**:
-- **Ensemble Methods**: Random Forest implementation for variance reduction
-- **Dataset Reduction**: Limit training to the most recent `N` seasons to reduce concept drift and align with current-era distributions, improving out-of-sample accuracy.
-- **Advanced Features**: Player-level statistics, weather conditions, rest days, travel distance
+On the other hand, PCA and SVD + KMeans produced lower-quality clusters but maintained some predictive capability. This pattern suggests these dimensionality reduction techniques captured variance components partially correlated with factors determining game outcomes. The 57.6% accuracy achieved by SVD + KMeans approaches the supervised learning performance while using no outcome information during training, indicating the presence of discoverable patterns in team performance data.
 
-## Next Phase Development
-- Random Forest ensemble implementation
-- Multi-season dataset expansion
-- Advanced feature engineering (player stats, weather)
-- Target: 60-65% validation accuracy
-  
----
+Improved approaches such as using cluster assignments as additional features in supervised models could potentially improve performance while maintaining the benefits of unsupervised learning.
 
-# Milestone 4
+## Conclusion
 
-## Summary
+This project developed and evaluated machine learning approaches for predicting MLB game outcomes, achieving meaningful improvements over baseline predictions. The best supervised model (Naive Bayes) attained 58% test accuracy, representing a 5% improvement over the 53% home-field advantage baseline. The unsupervised exploration revealed trade-offs between cluster quality and predictive power, with SVD + KMeans showing promise for prediction tasks.
 
-* **Best model (“second model”): `SVD + KMeans (k=2)` with majority-per-cluster labeling.**
-* **Test set (n = 3,888):** Accuracy **0.5756**, Precision **0.6036**, Recall **0.5808**, F1 **0.5920**.
-  Confusion matrix `[[TN, FP], [FN, TP]]` = **`[[1041, 786], [864, 1197]]`**.
-* **Train vs. Test:** Train accuracy ≈ **0.587** vs. Test **0.576** → **small generalization gap** (low variance) but **bias-limited**.
-* **Position on the fitting graph:** **Underfit / high-bias** region.
-* **Next steps:** Move to **direct supervised models** (LogReg, Gradient Boosting), add **richer features**, and replace the **hard cluster majority** mapping with supervised mapping or soft-probability features.
+Future research directions should prioritize advanced feature engineering, such as incorporating player-level statistics such as starting pitcher matchups, injury reports, and recent performance streaks. Weather conditions, ballpark factors, and travel schedules represent additional feature categories that could enhance predictive accuracy. Model complexity improvements through Random Forest, XGBoost, or neural network implementations could capture more sophisticated pattern interactions.
 
-### Test-set outcomes (best model)
+Ensemble methods combining the strengths of different algorithms may be another possible direction, with weighted combinations of Naive Bayes and SVM models. A hybrid approach utilizing unsupervised cluster assignments as categorical features in supervised models could provide additional predictive power while maintaining interpretability.
 
-* **TP:** 1,197
-* **TN:** 1,041
-* **FP:** 786
-* **FN:** 864
-* **Correct predictions:** 2,238
-* **Incorrect predictions:** 1,650
-* **Accuracy:** 0.5756
-* **Precision:** 0.6036
-* **Recall:** 0.5808
-* **F1:** 0.5920
-* **FPR:** 786 / (786 + 1041) ≈ **0.430**
-* **FNR:** 864 / (864 + 1197) ≈ **0.419**
-
-> Baseline (“always predict positive”): Accuracy **0.5301** (2061 / 3888).
-> **Gain vs. baseline:** \~**+4.5 pts** absolute accuracy.
-
-### Train vs. Test
-
-Cluster stats for the SVD+KMeans run:
-
-* **Cluster 0:** size 7,465; positives 3,290 (pos\_rate 0.4407) → predict **class 0**
-* **Cluster 1:** size 8,083; positives 4,952 (pos\_rate 0.6126) → predict **class 1**
-
-**Train accuracy ≈** $(7,465 − 3,290) + 4,952$ / 15,548 = **9,127 / 15,548 ≈ 0.587**
-Silhouette (train vs. test) for the 2-D embedding was very close (≈ **0.343** vs **0.337**), reinforcing **low variance** and **no evident overfit**.
-
-### Fitting-graph position
-
-* **Small train–test gap** and **both accuracies in the high-50s** → the model is bias-limited, left side of graph.
-* The pipeline (2-D SVD + k=2 clustering + hard majority label) is too simple to capture richer structure.
-
-### Next models/Improvements
-* Try Spectral Clustering on the best embedding (PCA/SVD) for non-convex clusters.
-* For GMM, compare AIC/BIC across k and covariance types; consider Dirichlet Process GMM for adaptive k.
-* For Agglomerative, inspect a dendrogram offline to choose k and linkage.
-* Engineer richer features (rolling form, park factors, platoon splits) to reveal stronger structure.
-
-### Conclusion for the (best) model
-
-* `SVD + KMeans` is **stable and better than the naïve baseline**, but **plateaus at \~58%** accuracy.
-* The bottleneck is the coarse decision rule, not SVD vs. PCA.
-
----
-
-## Unsupervised Clustering Models for MLB Game Data
-
-## 1. Summary
-
-In this analysis we explored six different unsupervised learning pipelines to cluster Major League Baseball game data.
-The goal was to identify meaningful groupings of games and evaluate their quality. The models were assessed using two approaches:
-
- 1. Internal Cluster Quality: Measured by how well-separated and dense the clusters are (using Silhouette, Calinski-Harabasz, and Davies-Bouldin scores).
- 2. External Predictive Power: Measured by how well the discovered clusters could be used to predict the home_win outcome.
-
-The key finding is a trade-off between these two objectives. The NMF+KMeans model produced the most structurally sound and well-defined clusters by a large margin. However, these clusters had no predictive power for game outcomes. The PCA+KMeans and SVD+KMeans models produced clusters with modest (though still weak) predictive power, but these clusters were of much lower quality from a structural standpoint.
-
-Conclusion: While NMF+KMeans is the best model for identifying distinct, data-driven segments, PCA+KMeans is slightly more useful for the practical task of outcome prediction. The overall low predictive accuracy suggests that improved feature engineering is required to create clusters that are meaningful for predicting game winners.
-
----
-
-## 2. Methods
-
-We implemented and tested the following unsupervised pipelines:
- * Dimensionality Reduction: PCA, TruncatedSVD, and NMF
- * Clustering: KMeans, Gaussian Mixture Model (GMM), and Agglomerative Clustering
-
-These were combined into six primary pipelines for hyperparameter searching:
- 1. PCA + KMeans
- 2. SVD + KMeans
- 3. NMF + KMeans
- 4. PCA + GMM
- 5. SVD + GMM
- 6. PCA + Agglomerative Clustering
-
-The models were evaluated on a training set and a held-out test set.
-
----
-
-### 2.1. Analysis of Cluster Quality (Internal Metrics)
-
-"Which model found the most mathematically optimal clusters?"
-
-The primary metric used is the Silhouette Score, which measures how similar an object is to its own cluster compared to other clusters. Scores range from -1 to 1, where a high value indicates that the object is well-matched to its own cluster and poorly-matched to neighboring clusters.
-
-The m4_model_comparison.csv file summarizes the best-performing configuration for each pipeline based on test set silhouette score.
-
-
-| model        | params                                              | train_silhouette | test_silhouette | interpretation                                  |
-| ------------ | --------------------------------------------------- | ---------------- | --------------- | ----------------------------------------------- |
-| **NMF+KMeans** | **{"n_components": 2, "k": 3}**                     | **0.878**        | **0.879**       | **Encouraging: test >= train silhouette.**      |
-| PCA+GMM      | {"n_components": 5, "k": 2, "covariance_type": "full"} | 0.497            | 0.493           | Stable: train and test silhouettes are similar. |
-| PCA+Agglo    | {"n_components": 5, "k": 2, "linkage": "average"}     | 0.497            | 0.493           | Stable: train and test silhouettes are similar. |
-| SVD+GMM      | {"n_components": 5, "k": 2, "covariance_type": "full"} | 0.496            | 0.492           | Stable: train and test silhouettes are similar. |
-| SVD+KMeans   | {"n_components": 2, "k": 2}                           | 0.343            | 0.337           | Stable: train and test silhouettes are similar. |
-| PCA+KMeans   | {"n_components": 2, "k": 2}                           | 0.343            | 0.337           | Stable: train and test silhouettes are similar. |
-
-
-#### Quantitative Findings:
- * NMF+KMeans is the overall 'best' model. Its best model achieved a silhouette score of 0.879, which is relatively high and indicates very dense, well-separated clusters.
- * The other models lag significantly, with the next best (PCA+GMM/Agglo) only achieving a score of ~0.493.
- * The PCA/SVD+KMeans models, which are often a strong baseline, performed the worst on this metric with a
-   score of ~0.337.
-
-#### Qualitative Findings:
-The m4_fit_position_summary.csv shows that the NMF+KMeans model was not only the best but also the most robust, with the test silhouette score being slightly higher than the train score, suggesting it generalizes very well. All other models were stable but did not show this trend.
-
-Conclusion for Cluster Quality: Based on internal metrics, the NMF+KMeans pipeline with 2 components and 3 clusters is the best model for partitioning the data into distinct groups.
-
----
-
-### 2.2 Analysis of Predictive Power (Supervised "Proxy" Metrics)
-
-"Are the clusters found by the models useful in a practical sense?" 
-
-To test this, the clusters were used to predict whether the home team would win.
-
-The m4_supervised_cluster_predictor_scores.csv file summarizes the performance. The F1-score is the most important metric here since it balances precision and recall, which is important for a imbalanced dataset.
-
-
-| model        | test_f1 | test_accuracy | test_precision | test_recall |
-| ------------ | ------- | ------------- | -------------- | ----------- |
-| **PCA+KMeans** | **0.592** | **0.576**       | **0.604**        | **0.581**     |
-| **SVD+KMeans** | **0.592** | **0.576**       | **0.604**        | **0.581**     |
-| NMF+KMeans   | 0.693   | 0.530         | 0.530          | 1.000       |
-| PCA+GMM      | 0.693   | 0.530         | 0.530          | 1.000       |
-| SVD+GMM      | 0.693   | 0.530         | 0.530          | 1.000       |
-| PCA+Agglo    | 0.693   | 0.530         | 0.530          | 1.000       |
-
-
-#### Quantitative Findings:
- * There is a reversal of the previous results. The models with the highest F1-scores are PCA+KMeans and SVD+KMeans, both achieving an F1 of ~0.592 and an accuracy of ~57.6%. While not a strong predictor, this is better than a 50/50 guess.
- * The other four models, including the previous winner NMF+KMeans, performed very poorly. Their high F1-score is misleading; a recall of 1.0 and precision of 0.53 indicates they always predicted the majority class (`home_win` = 1), making them useless as predictors. Their accuracy of 53% is simply a reflection of the dataset's baseline.
-
-#### Qualitative Findings:
-The most mathematically "clean" clusters are not aligned with the factors that predict a home win.
- * NMF likely found distinct groups based on features that, while structurally important in the data, have no effect on the game's outcome (e.g., clustering by month or weekday).
- * PCA and SVD create components that capture the maximum variance in the data. While this leads to messier, more overlapping clusters (lower silhouette scores), these clusters retained some signal that was correlated with the game's outcome.
-
----
-
-## 3. Conclusion
-
-There is no single "best" model. The choice depends entirely on the objective.
-
- * For identifying distinct, well-separated data segments: NMF+KMeans is the superior model. Its high
-   silhouette score proves it is the most effective at partitioning the data into structurally sound clusters.
-
- * For creating clusters that have some predictive value for game outcomes, PCA+KMeans and SVD+KMeans are the
-   best choices. Although their predictive lift is small, they are the only models that provide any signal for
-   the home_win target.
-
-Better, more predictive clusters may be achieved in engineering richer features. Rolling averages for team form, ballpark factors, and pitcher/batter platoon splits would likely create data structures where the "clean" clusters and the "predictive" clusters are similar.
+If this project could be done differently, greater emphasis would be placed on detailed starting pitcher statistics and opponent-adjusted performance metrics, as these factors are known to significantly influence individual game outcomes. Implementing time-series cross-validation procedures such as walk-forward validation would also provide improved hyperparameter optimization and better simulate real-world deployment conditions. The inherent challenge of unpredictability in baseball games means that even modest accuracy improvements as small as 5% represent meaningful advances in sports analytics applications.
 
 ---
 
@@ -642,17 +252,13 @@ CSE-151A-Group-Project/
 ├── .venv/                          # Virtual environment
 ├── data/
 │   └── raw/
-│       ├── games_2023.csv          # Raw MLB game data
 │       └── games_2016-2024_Milestone3.csv # 2016-2024 MLB game data
 ├── figs/                           # Generated visualizations  
 ├── notebooks/
 │   ├── milestone2_exploration.ipynb # Data exploration & preprocessing
-│   ├── milestone3_modeling.ipynb   # Model training & evaluation for 2023
 │   ├── milestone3_modeling_2016-2024.ipynb # Model training & evaluation for 2016-2024
-│   ├── milestone4_all_models.ipynb # All models from milestone 4
-│   ├── milestone4_unsupervised_modeling.ipynb # PCA, KMeans Baseline from milestone 4
-│   ├── outputs/
-│   └── outputs2/
+│   ├── milestone4_all_models.ipynb # All models from Milestone 4
+│   └── outputs2/ # evaluation scores for Milestone 4 Models
 ├── .gitignore
 ├── README.md                       # Project documentation
 └── requirements.txt               # Python dependencies
@@ -660,10 +266,7 @@ CSE-151A-Group-Project/
 
 ## Project Files
 - **[milestone2_exploration.ipynb](notebooks/milestone2_exploration.ipynb)** - Data preprocessing and feature engineering (2016-2023)
-- **[milestone3_modeling.ipynb](notebooks/milestone3_modeling.ipynb)** - Model training and optimization for MLB 2023 season
 - **[milestone3_modeling_2016-2024.ipynb](notebooks/milestone3_modeling_2016-2024.ipynb)** - Model training and optimization for MLB 2016-2024 seasons
 - **[milestone4_all_models.ipynb](notebooks/milestone4_all_models.ipynb)** - All models from milestone 4
-- **[milestone4_unsupervised_modeling.ipynb](notebooks/milestone4_unsupervised_modeling.ipynb)** - Unsupervised models from milestone 4
-- **[games_2023.csv](data/raw/games_2023.csv)** - Raw MLB data for MLB 2023 season
 - **[games_2016-2024_Milestone3.csv](data/raw/games_2016-2024_Milestone3.csv)** - Raw MLB data for MLB 2016-2024 season
 
