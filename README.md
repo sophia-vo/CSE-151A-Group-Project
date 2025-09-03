@@ -25,7 +25,7 @@ TODO: Add all other information from milestone 2, 3, 4 into report. All final mi
 
 ## Introduction
 
-This project addresses the problem of predicting Major League Baseball (MLB) game outcomes, specifically whether the home team or away team will win a single game. The topic was chosen because it represents a classic application in sports analytics where machine learning techniques can be applied to a field with accessible historical data and unpredictability.We chose MLB because it combines rich public data with high game-to-game randomness, making it an ideal and genuinely interesting testbed for machine learning
+This project addresses the problem of predicting Major League Baseball (MLB) game outcomes, specifically whether the home team or away team will win a single game. The topic was chosen because it represents a classic application in sports analytics where machine learning techniques can be applied to a field with accessible historical data and unpredictability. We chose MLB because it combines rich public data with high game-to-game randomness, making it an ideal and genuinely interesting testbed for machine learning.
 
 The development of accurate predictive models for MLB games has a substantial impact on decision-making. Teams and franchises can leverage such models for strategic choices, including roster evaluation, performance assessment, and game-day strategy development. Media organizations and broadcasters benefit from enhanced fan engagement through data-driven pre-game analysis and win probability assessments that enrich commentary and storytelling. Additionally, these models serve as fundamental infrastructure for fantasy sports platforms and sports betting markets, where predictive accuracy directly influences financial outcomes for millions of participants. It’s cool precisely because even small, reproducible gains over simple baselines (e.g., the ~53% home-win prior) can meaningfully shift decisions and fan tools.
 
@@ -71,7 +71,7 @@ Initial data examination revealed 19,436 games with comprehensive game-level inf
 
 ### Preprocessing
 
-Data cleaning procedures removed outcome-leaking features including home_runs, away_runs, and run_diff to prevent data leakage during model training. A comprehensive feature engineering pipeline was implemented to capture team matchup dynamics through differential and ratio calculations.
+Data cleaning procedures removed outcome columns (home_runs, away_runs, run_diff). A comprehensive feature engineering pipeline was implemented for differential and ratio features.
 
 ```python
 # Key feature engineering implementation
@@ -214,9 +214,11 @@ The comprehensive coverage from 2016-2024 provides substantial temporal depth wh
 
 ### Preprocessing Discussion
 
-The feature engineering strategy successfully captured team matchup dynamics through delta and ratio calculations. These engineered features represent meaningful baseball concepts: delta features directly measure team strength differences, while ratio features provide normalized comparisons that account for league-wide performance variations. The polynomial feature generation for high-signal features allowed the models to capture potential non-linear interactions between team strengths.
+We excluded outcome columns (`home_runs`, `away_runs`, `run_diff`) to avoid label leakage. Rolling statistics used `shift(1)` so each game’s features depended only on prior games, preventing temporal look-ahead.
 
-Rolling performance metrics captured recent team form, with the temporal leakage prevention through shift(1) operations ensuring model validity. The 81-feature final space represents a balance between comprehensive representation and computational tractability, though the dimensionality may have contributed to some overfitting in complex models like KNN.
+Delta and ratio features operationalize matchup strength (home vs. away) in a scale-aware way. We also added degree-2 polynomial terms on these delta/ratio features so simple models can capture basic non-linear interactions without requiring heavy architectures.
+
+Feature engineering captured matchup dynamics effectively: delta features measure team-strength differences, ratio features provide normalized comparisons across opponents, and polynomial terms model simple interactions. Rolling performance metrics (7/10/15 games) captured recent form via `groupby(...).shift(1).rolling(...)`, avoiding look-ahead. The resulting 81-feature space balances coverage and computational tractability, though the dimensionality likely contributed to some overfitting in KNN.
 
 ### Model 1 Discussion
 
@@ -225,6 +227,9 @@ Naive Bayes was the best supervised learning baseline due to its strong generali
 Other models showed worse patterns: KNN demonstrated significant overfitting (64.2% training vs 54.6% validation), suggesting the model memorized training patterns that did not generalize. SVM showed moderate overfitting, while Decision Tree performance fell between these extremes. The improved performance of Naive Bayes likely reflects its probabilistic nature and independence assumptions, which may be well-suited to the complex, partially independent factors influencing baseball game outcomes.
 
 ### Model 2 Discussion
+We paired PCA/SVD/NMF with KMeans/GMM to test whether lower-dimensional structure aligns with outcomes. The `k` and component ranges were chosen to explore coarse (k=2) through modestly granular partitions while avoiding overfragmentation.
+
+Silhouette, Calinski–Harabasz, and Davies–Bouldin quantify cohesion/separation from different angles. We treated them as internal quality checks and then validated usefulness externally by mapping clusters to labels and measuring test accuracy/F1.
 
 The unsupervised learning models revealed fundamental trade-offs between internal cluster quality and external predictive power. NMF + KMeans produced structurally excellent clusters with high silhouette scores, suggesting the algorithm identified distinct, meaningful groupings in the feature space. However, these groupings were not correlated with game outcomes, indicating NMF may have clustered games based on non-predictive factors such as temporal patterns, league affiliations, or other structural elements.
 
@@ -252,7 +257,7 @@ Contribution: Wrote code and README.md for Milestones 2, 3, 4. Wrote final repor
 Contribution: Wrote code and README.md for Milestones
 
 *Sharon Huang, Role:*
-Contribution: Wrote code and README.md for Milestones
+Contribution: Wrote code and README.md for Milestones 2,3,4.
 
 *Mary Rong, Role:*
 Contribution: Wrote code and README.md for Milestones
