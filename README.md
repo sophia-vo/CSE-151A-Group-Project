@@ -263,7 +263,7 @@ If this project could be done differently, greater emphasis would be placed on d
 Contribution: Wrote code and README.md for Milestones 2, 3, 4. Wrote final report draft.
 
 *Juan Pablo DeSilva, Role:*
-Contribution: Wrote code and README.md for Milestones
+Contribution: Wrote code and README.md for Milestones 1, 2, 4. 
 
 *Sharon Huang, Role:*
 Contribution: Wrote code and README.md for Milestones 2,3,4.
