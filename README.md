@@ -243,6 +243,21 @@ Ensemble methods combining the strengths of different algorithms may be another 
 If this project could be done differently, greater emphasis would be placed on detailed starting pitcher statistics and opponent-adjusted performance metrics, as these factors are known to significantly influence individual game outcomes. Implementing time-series cross-validation procedures such as walk-forward validation would also provide improved hyperparameter optimization and better simulate real-world deployment conditions. The inherent challenge of unpredictability in baseball games means that even modest accuracy improvements as small as 5% represent meaningful advances in sports analytics applications.
 
 ---
+## Collaboration
+
+*Sophia Vo, Role: Coder, Writer*
+Contribution: Wrote code and README.md for Milestones 2, 3, 4. Wrote final report draft.
+
+*Juan Pablo DeSilva, Role:*
+Contribution: Wrote code and README.md for Milestones
+
+*Sharon Huang, Role:*
+Contribution: Wrote code and README.md for Milestones
+
+*Mary Rong, Role:*
+Contribution: Wrote code and README.md for Milestones
+
+---
 
 ## Repository Structure and Documentation
 
