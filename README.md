@@ -200,9 +200,9 @@ Test set confusion matrix for Naive Bayes revealed: True Positives (Home Wins): 
 
 Internal cluster quality assessment showed NMF + KMeans achieved the highest silhouette score of 0.879, indicating well-separated, coherent clusters. Other pipelines demonstrated lower internal quality, with PCA/SVD + KMeans models scoring approximately 0.337 on silhouette metrics.
 
-Predictive performance revealed an inverse relationship between cluster quality and predictive power. PCA + KMeans and SVD + KMeans achieved the best predictive performance with test F1-scores of 0.592 and test accuracy of 57.6%. The NMF + KMeans model, despite better cluster quality, showed no predictive capability and defaulted to majority class prediction.
+Predictive performance revealed an inverse relationship between cluster quality and predictive power. PCA + KMeans and SVD + KMeans achieved the best predictive performance with test F1-scores of 0.592 and test accuracy of 57.6%. The best SVD + KMeans model improved by ~4.6 percentage points over the 53% home-win baseline, comparable to gains achieved by supervised models like Naive Bayes. The NMF + KMeans model, despite better cluster quality, showed no predictive capability and defaulted to majority class prediction.
 
-Best unsupervised model performance (SVD + KMeans with k=2): Test Accuracy of 57.6%, Test F1-Score of 0.592, with confusion matrix values [[1041, 786], [864, 1197]] for [[TN, FP], [FN, TP]] respectively.
+Best unsupervised model performance (SVD + KMeans with k=2): Test Accuracy of 57.6%, Test F1-Score of 0.592, with confusion matrix values [[1041, 786], [864, 1197]] for [[TN, FP], [FN, TP]] respectively. The confusion matrix for SVD + KMeans showed a slight bias toward predicting home wins (786 false positives vs. 864 false negatives), which mirrors the natural home-field advantage in MLB. 
 
 ## Discussion
 
