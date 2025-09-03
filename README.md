@@ -21,7 +21,7 @@ TODO: Add all other information from milestone 2, 3, 4 into report. All final mi
   - [Model 1 Discussion](#model-1-discussion)
   - [Model 2 Discussion](#model-2-discussion)
 - [Conclusion](#conclusion)
-- [References](#references)
+- [Collaboration](#collaboration)
 
 ## Introduction
 
@@ -260,16 +260,20 @@ If this project could be done differently, greater emphasis would be placed on d
 ## Collaboration
 
 *Sophia Vo, Role: Coder, Writer*
-Contribution: Wrote code and README.md for Milestones 2, 3, 4. Wrote final report draft.
 
-*Juan Pablo DeSilva, Role:*
-Contribution: Wrote code and README.md for Milestones 1, 2, 4. 
+Contribution: Wrote code and README.md for Milestones 2, 3, 4. Wrote final report.
 
-*Sharon Huang, Role:*
-Contribution: Wrote code and README.md for Milestones 2,3,4.
+*Juan Pablo DeSilva, Role: Coder, Writer*
+
+Contribution: Wrote code and README.md for Milestones 1, 3.  Wrote Abstract (Milestone 1).
+
+*Sharon Huang, Role: Coder, Writer*
+
+Contribution: Wrote code and README.md for Milestones 2, 3, 4. Revised final report.
 
 *Mary Rong, Role: Coder, Writer*
-Contribution: Wrote code and README.md for Milestones 2, 3, 4. Revised Abstract and final report draft.
+
+Contribution: Wrote code and README.md for Milestones 2, 3. Revised Abstract and final report.
 
 ---
 
