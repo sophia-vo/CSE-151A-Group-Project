@@ -204,6 +204,15 @@ Predictive performance revealed an inverse relationship between cluster quality 
 
 Best unsupervised model performance (SVD + KMeans with k=2): Test Accuracy of 57.6%, Test F1-Score of 0.592, with confusion matrix values [[1041, 786], [864, 1197]] for [[TN, FP], [FN, TP]] respectively. The confusion matrix for SVD + KMeans showed a slight bias toward predicting home wins (786 false positives vs. 864 false negatives), which mirrors the natural home-field advantage in MLB. 
 
+![NMF + KMeans Clusters](figs/nmf_kmeans_test.png)  
+**Figure 8.** The NMF + KMeans test clusters shows strong internal separation (high silhouette) but no predictive alignment with outcomes.
+
+![PCA + KMeans Clusters](figs/pca_kmeans_test.png)  
+**Figure 9.** PCA + KMeans test clusters shows cleaner separation in feature space but only moderate predictive accuracy.
+
+![SVD + KMeans Clusters](figs/svd_kmeans_test.png)  
+**Figure 10.** SVD + KMeans test clusters is less visually distinct but achieved the best predictive performance among clustering pipelines.
+
 ## Discussion
 
 ### Data Exploration Discussion
