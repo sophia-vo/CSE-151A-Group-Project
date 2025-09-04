@@ -1,5 +1,3 @@
-TODO: Add all other information from milestone 2, 3, 4 into report. All final milestones are on branch milestone4 readme
-
 # Predicting Major League Baseball Game Outcomes: A Machine Learning Approach
 
 ## Table of Contents
